@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: meal_planner
+      POSTGRES_USER: meal
+      POSTGRES_PASSWORD: meal
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://meal:meal@db:5432/meal_planner
+      SECRET_KEY: change-me-in-production
+    depends_on:
+      - db
+volumes:
+  postgres_data:

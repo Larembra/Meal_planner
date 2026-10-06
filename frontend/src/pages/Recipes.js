@@ -1,10 +1,16 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Button, Card, ImageBox } from '../components/UI'
 import { recipes, sumIngredientPrices } from '../data/mockData'
+import { getRecipes } from '../api'
 
 const recipeTags = [...new Set(recipes.map(r => r.tag).filter(Boolean))]
 
 export default function Recipes() {
+  const [apiRecipes, setApiRecipes] = useState([])
+  const [apiError, setApiError] = useState('')
+  useEffect(() => {
+    getRecipes().then(setApiRecipes).catch(err => setApiError(err.message))
+  }, [])
   const [q, setQ] = useState('')
   const [cat, setCat] = useState('Все блюда')
   const [quickFilters, setQuickFilters] = useState([])
@@ -47,8 +53,16 @@ export default function Recipes() {
 
   const unselectedMatches = matchingTags.filter(tag => !draftTags.includes(tag))
 
+  const sourceRecipes = apiRecipes.length ? apiRecipes : recipes
+  const isModerator = JSON.parse(localStorage.getItem("meal_planner_user") || "null")?.role === "moderator"
+  const [favorites, setFavorites] = useState(() => JSON.parse(localStorage.getItem("favorite_recipes") || "[]"))
+  const toggleFavorite = id => setFavorites(previous => {
+    const next = previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id]
+    localStorage.setItem("favorite_recipes", JSON.stringify(next))
+    return next
+  })
   const list = useMemo(
-    () => recipes.filter(r => {
+    () => sourceRecipes.filter(r => {
       const matchesQuery = [
         r.title,
         r.description,
@@ -77,7 +91,7 @@ export default function Recipes() {
 
       return matchesQuery && matchesCategory && matchesTags && matchesQuickFilters
     }),
-    [q, cat, selectedTags, quickFilters]
+    [q, cat, selectedTags, quickFilters, sourceRecipes]
   )
 
   const cats = [
@@ -109,7 +123,7 @@ export default function Recipes() {
           <p>База здоровых и простых блюд</p>
         </div>
 
-        <Button href="/recipes/new">+ Создать рецепт</Button>
+        {isModerator && <Button href="/recipes/new">+ Создать рецепт</Button>}
       </div>
 
       <div className="search-row">
@@ -210,6 +224,7 @@ export default function Recipes() {
       </div>
 
       <div className="recipe-grid">
+        {apiError && <p role="alert">{apiError}</p>}
         {list.map(r => (
           <Card
             key={r.id}
@@ -225,6 +240,7 @@ export default function Recipes() {
               <div className="tags">
                 <span>{r.category}</span>
                 <span>{r.tag}</span>
+                {favorites.includes(r.id) && <span>Избранное</span>}
               </div>
 
               <h3>{r.title}</h3>
@@ -236,7 +252,13 @@ export default function Recipes() {
 
               <div className="recipe-price">Цена: {sumIngredientPrices(r.ingredients) || r.price || 0} ₽</div>
 
-              <a
+              <button type="button" className="edit-icon"
+                title={favorites.includes(r.id) ? "Убрать из избранного" : "Добавить в избранное"}
+                aria-label={favorites.includes(r.id) ? "Убрать из избранного" : "Добавить в избранное"}
+                onClick={event => { event.stopPropagation(); toggleFavorite(r.id) }}
+                onKeyDown={event => event.stopPropagation()}
+              >{favorites.includes(r.id) ? "♥" : "♡"}</button>
+              {isModerator && <a
                 className="edit-icon"
                 href={`/recipes/edit?id=${r.id}`}
                 title="Редактировать"
@@ -245,7 +267,7 @@ export default function Recipes() {
                 onKeyDown={event => event.stopPropagation()}
               >
                 ✎
-              </a>
+              </a>}
             </div>
           </Card>
         ))}

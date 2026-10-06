@@ -1,8 +1,16 @@
 import React, { useState } from "react";
 import { Button, Card } from "../components/UI";
+import { generateRation } from "../api";
 
 export default function GenerateDiet() {
   const [done, setDone] = useState(false);
+  const [period, setPeriod] = useState(7);
+  const [tags, setTags] = useState([]);
+  const [error, setError] = useState("");
+  const generate = async () => {
+    try { await generateRation(period, tags); setDone(true); }
+    catch (err) { setError(err.message); }
+  };
   return (
     <div className="container narrow">
       <div className="page-title">
@@ -18,9 +26,10 @@ export default function GenerateDiet() {
         <label>
           Период планирования
           <div className="segmented">
-            <button>1 день</button>
-            <button>3 дня</button>
-            <button className="selected">7 дней</button>
+            {[1, 3, 7].map(value => <button type="button" key={value}
+              className={period === value ? "selected" : ""} onClick={() => setPeriod(value)}>
+              {value} {value === 1 ? "день" : "дня"}
+            </button>)}
           </div>
         </label>
         <label>
@@ -28,18 +37,17 @@ export default function GenerateDiet() {
           <textarea placeholder="Например: Хочу больше сезонных фруктов, или меню для пикника на выходных..." />
         </label>
         <div className="chips">
-          <button>Быстро готовить</button>
-          <button>Недорого</button>
-          <button>Больше белка</button>
-          <button>Без молочных продуктов</button>
-          <button>Минимум мытья посуды</button>
+          {["Быстро готовить", "Недорого", "Больше белка", "Без молочных продуктов", "Минимум мытья посуды"].map(tag =>
+            <button type="button" key={tag} className={tags.includes(tag) ? "selected" : ""}
+              onClick={() => setTags(v => v.includes(tag) ? v.filter(x => x !== tag) : [...v, tag])}>{tag}</button>)}
         </div>
         {done && (
           <div className="success">
             Рацион успешно сгенерирован! Меню сохранено и добавлено в календарь.
           </div>
         )}
-        <Button onClick={() => setDone(true)}>
+        {error && <p role="alert">{error}</p>}
+        <Button onClick={generate}>
           💫 Сгенерировать рацион питания
         </Button>
       </Card>

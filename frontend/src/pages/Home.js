@@ -2,6 +2,7 @@ import React from "react";
 import { Button, Card, ImageBox } from "../components/UI";
 
 export function Home() {
+  const isLoggedIn = Boolean(localStorage.getItem("meal_planner_access_token"));
   const steps = [
     [
       "01",
@@ -41,9 +42,7 @@ export function Home() {
           </p>
           <div className="actions">
             <Button href="/diet/generate">Создать рацион</Button>
-            <Button href="/login" variant="secondary">
-              Войти в личный кабинет
-            </Button>
+            {!isLoggedIn && <Button href="/login" variant="secondary">Войти в личный кабинет</Button>}
           </div>
         </div>
         <ImageBox src="/static/vitya_nyam_nyam.jpg" className="hero-image" />

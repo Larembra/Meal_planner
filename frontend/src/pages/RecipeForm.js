@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Button, Card, ImageBox } from "../components/UI";
 import { recipes, sumIngredientPrices, ingredientCategories } from "../data/mockData";
+import { createRecipe } from "../api";
 
 const emptyIngredient = () => ({
   name: "",
@@ -17,6 +18,15 @@ const defaultIngredients = [
 
 export default function RecipeForm({ mode }) {
   const existing = recipes[0];
+  const [name, setName] = useState(mode === "edit" ? existing.title : "");
+  const [category, setCategory] = useState(mode === "edit" ? existing.category : "Ужин");
+  const [time, setTime] = useState(mode === "edit" ? existing.time : 0);
+  const [calories, setCalories] = useState(mode === "edit" ? existing.calories : 0);
+  const [protein, setProtein] = useState(mode === "edit" ? existing.protein : 0);
+  const [fat, setFat] = useState(mode === "edit" ? existing.fat : 0);
+  const [carbs, setCarbs] = useState(mode === "edit" ? existing.carbs : 0);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [steps, setSteps] = useState(
     mode === "edit" ? existing.steps : ["", ""],
   );
@@ -46,6 +56,30 @@ export default function RecipeForm({ mode }) {
     () => sumIngredientPrices(ingredients),
     [ingredients],
   );
+  const save = async () => {
+    setError("");
+    setSaving(true);
+    try {
+      await createRecipe({
+        name,
+        category,
+        time: Number(time) || 0,
+        calories: Number(calories) || 0,
+        protein: Number(protein) || 0,
+        fat: Number(fat) || 0,
+        carbs: Number(carbs) || 0,
+        price: recipePrice,
+        image,
+        ingredients,
+        steps,
+      });
+      window.location.href = "/recipes";
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="container recipe-form">
@@ -68,7 +102,8 @@ export default function RecipeForm({ mode }) {
             <label>
               Название рецепта
               <input
-                defaultValue={mode === "edit" ? existing.title : ""}
+                value={name}
+                onChange={e => setName(e.target.value)}
                 placeholder="Введите название (например: Овсяная каша с бананом)"
               />
             </label>
@@ -142,19 +177,19 @@ export default function RecipeForm({ mode }) {
             <div className="form-grid four">
               <label>
                 Калории (ккал)
-                <input defaultValue={mode === "edit" ? existing.calories : 0} />
+                <input value={calories} onChange={e => setCalories(e.target.value)} />
               </label>
               <label>
                 Белки (г)
-                <input defaultValue={mode === "edit" ? existing.protein : 0} />
+                <input value={protein} onChange={e => setProtein(e.target.value)} />
               </label>
               <label>
                 Жиры (г)
-                <input defaultValue={mode === "edit" ? existing.fat : 0} />
+                <input value={fat} onChange={e => setFat(e.target.value)} />
               </label>
               <label>
                 Углеводы (г)
-                <input defaultValue={mode === "edit" ? existing.carbs : 0} />
+                <input value={carbs} onChange={e => setCarbs(e.target.value)} />
               </label>
             </div>
           </Card>
@@ -184,14 +219,16 @@ export default function RecipeForm({ mode }) {
               <label>
                 Время приготовления (минут)
                 <input
-                  defaultValue={mode === "edit" ? existing.time : ""}
+                  value={time}
+                  onChange={e => setTime(e.target.value)}
                   placeholder="Например: 25"
                 />
               </label>
               <label>
                 Категория
                 <select
-                  defaultValue={mode === "edit" ? existing.category : "Ужин"}
+                  value={category}
+                  onChange={e => setCategory(e.target.value)}
                 >
                   <option>Завтрак</option>
                   <option>Обед</option>
@@ -203,12 +240,13 @@ export default function RecipeForm({ mode }) {
           </Card>
         </div>
       </div>
+      {error && <p role="alert">{error}</p>}
       <div className="right-actions">
         <Button href="/recipes" variant="secondary">
           Отмена
         </Button>
-        <Button href="/recipes">
-          {mode === "edit" ? "Сохранить изменения" : "Создать рецепт"}
+        <Button onClick={save} disabled={saving}>
+          {saving ? "Сохраняем..." : mode === "edit" ? "Сохранить изменения" : "Создать рецепт"}
         </Button>
       </div>
     </div>

@@ -1,23 +1,48 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Card } from "../components/UI";
-import { user } from "../data/mockData";
+import { getProfile, updateProfile } from "../api";
 
 export default function Profile() {
-  const [goal, setGoal] = useState(user.goal);
-  const [age, setAge] = useState(user.age);
-  const [height, setHeight] = useState(user.height);
-  const [weight, setWeight] = useState(user.weight);
+  const [user, setUser] = useState(null);
+  const [goal, setGoal] = useState("");
+  const [age, setAge] = useState("");
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
   const [activity, setActivity] = useState("moderate");
   const [meals, setMeals] = useState("4");
-  const [diet, setDiet] = useState(user.diet);
-  const [exclusions, setExclusions] = useState(user.exclusions.join(", "));
-  const [budget, setBudget] = useState(user.budget);
-  const [cookingTime, setCookingTime] = useState(user.cookingTime);
-  const [preferences, setPreferences] = useState(user.preferences);
+  const [diet, setDiet] = useState("");
+  const [exclusions, setExclusions] = useState("");
+  const [budget, setBudget] = useState("");
+  const [cookingTime, setCookingTime] = useState("");
+  const [preferences, setPreferences] = useState("");
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    getProfile().then(profile => {
+      setUser(profile); setGoal(profile.goal || ""); setAge(profile.age || "");
+      setHeight(profile.height || ""); setWeight(profile.weight || "");
+      setDiet(profile.preferences?.diet || "Всеядный");
+      setExclusions((profile.allergies || []).join(", "));
+      setBudget(profile.preferences?.budget || "");
+      setCookingTime(profile.cooking_time_minutes || "");
+      setPreferences(profile.preferences?.text || "");
+    }).catch(err => setMessage(err.message));
+  }, []);
+  const save = async () => {
+    try {
+      const next = await updateProfile({
+        name: user?.name,
+        age: Number(age) || null, height: Number(height) || null, weight: Number(weight) || null,
+        goal, allergies: exclusions.split(",").map(x => x.trim()).filter(Boolean),
+        preferences: { diet, budget: Number(budget) || 0, text: preferences },
+        cooking_time_minutes: Number(cookingTime) || null,
+      });
+      setUser(next); setMessage("Изменения сохранены");
+    } catch (err) { setMessage(err.message); }
+  };
 
   return (
     <div className="container">
-      <PageHeader role={user.role} />
+      <PageHeader role={user?.role || "client"} />
       <div className="profile-grid">
         <Card>
           <h2>📊 Базовые данные и цели</h2>
@@ -99,7 +124,8 @@ export default function Profile() {
         </Card>
       </div>
       <div className="right-actions">
-        <Button>Сохранить изменения</Button>
+        <Button onClick={save}>Сохранить изменения</Button>
+        {message && <p role="status">{message}</p>}
       </div>
     </div>
   );

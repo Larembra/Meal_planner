@@ -6,8 +6,14 @@ const formatPrice = value =>
   `${Number(value || 0).toLocaleString("ru-RU")} ₽`;
 
 export default function Shopping() {
-  const [checked, setChecked] = useState([]);
-  const groups = shoppingGroups;
+  const [checked, setChecked] = useState(() => JSON.parse(localStorage.getItem("shopping_checked") || "[]"));
+  const [custom, setCustom] = useState(() => JSON.parse(localStorage.getItem("shopping_custom") || "[]"));
+  const [newItem, setNewItem] = useState({ name: "", quantity: "", price: "" });
+  const groups = useMemo(() => {
+    const base = shoppingGroups.map(group => ({ ...group, items: [...group.items] }));
+    if (custom.length) base.push({ title: "🛒 Добавлено вами", items: custom });
+    return base;
+  }, [custom]);
   const allItems = useMemo(
     () => groups.flatMap(group => group.items),
     [groups],
@@ -19,8 +25,26 @@ export default function Shopping() {
     () => sumIngredientPrices(allItems),
     [allItems],
   );
-  const toggle = (id) =>
-    setChecked((v) => (v.includes(id) ? v.filter((i) => i !== id) : [...v, id]));
+  const toggle = (id) => setChecked(v => {
+    const next = v.includes(id) ? v.filter(i => i !== id) : [...v, id];
+    localStorage.setItem("shopping_checked", JSON.stringify(next));
+    return next;
+  });
+  const addItem = () => {
+    const name = newItem.name.trim();
+    if (!name) return;
+    const item = { id: `custom-${Date.now()}`, name, quantity: newItem.quantity.trim() || "1 шт.", price: Number(newItem.price) || 0 };
+    const next = [...custom, item];
+    setCustom(next);
+    localStorage.setItem("shopping_custom", JSON.stringify(next));
+    setNewItem({ name: "", quantity: "", price: "" });
+  };
+  const removeItem = id => {
+    const next = custom.filter(item => item.id !== id);
+    setCustom(next);
+    localStorage.setItem("shopping_custom", JSON.stringify(next));
+    setChecked(items => items.filter(item => item !== id));
+  };
 
   return (
     <div className="container">
@@ -37,8 +61,15 @@ export default function Shopping() {
         <div>
           Выкупленные продукты <strong>{boughtPercent}%</strong>
         </div>
-        <input placeholder="Добавить свой продукт (например: Сыр 200г)..." />
-        <Button>Добавить</Button>
+        <input value={newItem.name} onChange={e => setNewItem(v => ({ ...v, name: e.target.value }))}
+          onKeyDown={e => e.key === "Enter" && addItem()}
+          placeholder="Название товара" />
+        <input value={newItem.quantity} onChange={e => setNewItem(v => ({ ...v, quantity: e.target.value }))}
+          placeholder="Количество / комментарий" />
+        <input type="number" min="0" value={newItem.price}
+          onChange={e => setNewItem(v => ({ ...v, price: e.target.value }))}
+          placeholder="Цена, ₽" />
+        <Button onClick={addItem}>Добавить</Button>
       </div>
       <div className="shopping-grid">
         {groups.map((group) => (
@@ -57,6 +88,7 @@ export default function Shopping() {
                 <span>{item.name}</span>
                 <strong>{item.quantity}</strong>
                 <em>{formatPrice(item.price)}</em>
+                {String(item.id).startsWith("custom-") && <button type="button" onClick={() => removeItem(item.id)}>Удалить</button>}
               </label>
             ))}
           </Card>
