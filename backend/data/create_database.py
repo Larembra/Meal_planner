@@ -40,7 +40,7 @@ def load_snapshot(connection_settings: dict[str, object], database: str, snapsho
 
 
 def main() -> None:
-    database = os.getenv("PGDATABASE", "Meal_planner_test")
+    database = os.getenv("PGDATABASE", "Meal_planner")
     host = os.getenv("PGHOST", "localhost")
     port = int(os.getenv("PGPORT", "5432"))
     user = os.getenv("PGUSER", "postgres")
