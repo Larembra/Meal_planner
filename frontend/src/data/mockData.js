@@ -1,12 +1,8 @@
 export const user = {
   name: "Константин",
-  age: 28,
-  height: 182,
-  weight: 79,
   role: "Администратор",
   email: "vitya@example.com",
   goal: "Поддерживать форму",
-  activity: "Умеренный",
   meals: 4,
   diet: "Всеядный",
   exclusions: ["Арахис", "Коровье молоко"],

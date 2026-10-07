@@ -1,7 +1,7 @@
 """Create the Meal_planner PostgreSQL database from the bundled snapshot.
 
-The script validates the complete snapshot in a temporary database before it
-creates the requested target. Connection settings use PGHOST, PGPORT, PGUSER,
+The script validates the complete SQL snapshot in a temporary database before
+creating the requested target. Connection settings use PGHOST, PGPORT, PGUSER,
 PGPASSWORD and PGDATABASE. Requires psycopg2-binary; the PostgreSQL server must
 have the pgcrypto and pgvector extensions available.
 """
@@ -40,7 +40,7 @@ def load_snapshot(connection_settings: dict[str, object], database: str, snapsho
 
 
 def main() -> None:
-    database = os.getenv("PGDATABASE", "Meal_planner")
+    database = os.getenv("PGDATABASE", "Meal_planner_test")
     host = os.getenv("PGHOST", "localhost")
     port = int(os.getenv("PGPORT", "5432"))
     user = os.getenv("PGUSER", "postgres")

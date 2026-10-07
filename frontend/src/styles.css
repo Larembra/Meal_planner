@@ -385,17 +385,64 @@ select:focus {
   grid-template-columns: 1fr 1fr;
   gap: 18px;
 }
+.profile-grid-settings {
+  align-items: stretch;
+}
+.profile-hint {
+  color: var(--muted);
+  margin: -8px 0 18px;
+  line-height: 1.5;
+}
+.profile-goals {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.profile-goal-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--dark);
+  text-align: left;
+  cursor: pointer;
+}
+.profile-goal-card strong {
+  color: var(--muted);
+  white-space: nowrap;
+}
+.profile-goal-card.selected {
+  border-color: var(--green);
+  background: #f3faf7;
+  box-shadow: 0 0 0 1px var(--green);
+}
+.profile-goal-card.selected strong {
+  color: var(--dark);
+}
 .profile-grid h2 {
   font-size: 16px;
   color: var(--dark);
   margin: 0 0 18px;
 }
 .profile-summary {
+  display: grid;
+  gap: 4px;
   margin-top: 12px;
   padding: 12px 14px;
   border-radius: 12px;
   background: #f3faf7;
   color: var(--dark);
+}
+.profile-summary span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.profile-summary strong {
+  line-height: 1.45;
 }
 .profile-grid label {
   margin-bottom: 16px;
