@@ -849,7 +849,7 @@ ALTER TABLE "public"."profiles" ADD CONSTRAINT "profiles_goal_check" CHECK (((go
 ALTER TABLE "public"."profiles" ADD CONSTRAINT "profiles_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
 ALTER TABLE "public"."ration_meals" ADD CONSTRAINT "ration_meals_meal_id_fkey" FOREIGN KEY (meal_id) REFERENCES meals(id) ON DELETE RESTRICT;
 ALTER TABLE "public"."ration_meals" ADD CONSTRAINT "ration_meals_ration_id_fkey" FOREIGN KEY (ration_id) REFERENCES rations(id) ON DELETE CASCADE;
-ALTER TABLE "public"."ration_meals" ADD CONSTRAINT "ration_meals_type_check" CHECK (((meal_type)::text = ANY ((ARRAY['breakfast'::character varying, 'lunch'::character varying, 'dinner'::character varying, 'snack'::character varying])::text[])));
+ALTER TABLE "public"."ration_meals" ADD CONSTRAINT "ration_meals_type_check" CHECK (((meal_type)::text = ANY ((ARRAY['breakfast'::character varying, 'second_breakfast'::character varying, 'lunch'::character varying, 'dinner'::character varying, 'snack'::character varying])::text[])));
 ALTER TABLE "public"."rations" ADD CONSTRAINT "rations_dates_check" CHECK ((date_to >= date_from));
 ALTER TABLE "public"."rations" ADD CONSTRAINT "rations_status_check" CHECK (((status)::text = ANY ((ARRAY['draft'::character varying, 'active'::character varying, 'completed'::character varying])::text[])));
 ALTER TABLE "public"."rations" ADD CONSTRAINT "rations_user_id_fkey" FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;

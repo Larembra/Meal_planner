@@ -6,9 +6,11 @@ export default function GenerateDiet() {
   const [done, setDone] = useState(false);
   const [period, setPeriod] = useState(7);
   const [tags, setTags] = useState([]);
+  const [extraRequest, setExtraRequest] = useState("");
+  const [model, setModel] = useState("apodex/apodex-1.1-mini:free");
   const [error, setError] = useState("");
   const generate = async () => {
-    try { await generateRation(period, tags); setDone(true); }
+    try { await generateRation(period, tags, extraRequest, model); setDone(true); }
     catch (err) { setError(err.message); }
   };
   return (
@@ -34,7 +36,17 @@ export default function GenerateDiet() {
         </label>
         <label>
           Дополнительные пожелания к рациону
-          <textarea placeholder="Например: Хочу больше сезонных фруктов, или меню для пикника на выходных..." />
+          <textarea value={extraRequest} onChange={event => setExtraRequest(event.target.value)}
+            placeholder="Например: больше сезонных фруктов, простые блюда..." />
+        </label>
+        <label>
+          Модель генерации
+          <select value={model} onChange={event => setModel(event.target.value)}>
+            <option value="apodex/apodex-1.1-mini:free">Apodex 1.1 Mini (по умолчанию)</option>
+            <option value="liquid/lfm-2.5-2.6b:free">Liquid LFM 2.5</option>
+            <option value="nvidia/nemotron-3-ultra-550b-a55b:free">NVIDIA Nemotron 3 Ultra</option>
+            <option value="openrouter/free">OpenRouter Free (автовыбор)</option>
+          </select>
         </label>
         <div className="chips">
           {["Быстро готовить", "Недорого", "Больше белка", "Без молочных продуктов", "Минимум мытья посуды"].map(tag =>
@@ -43,7 +55,8 @@ export default function GenerateDiet() {
         </div>
         {done && (
           <div className="success">
-            Рацион успешно сгенерирован! Меню сохранено и добавлено в календарь.
+            Рацион успешно сгенерирован и сохранён.
+            <p><a href="/diet/week">Открыть мой рацион</a></p>
           </div>
         )}
         {error && <p role="alert">{error}</p>}

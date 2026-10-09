@@ -67,15 +67,34 @@ export async function getRecipes() {
   }))
 }
 
-export async function createRecipe(data) {
-  const details = {
-    ...data,
-    ingredients: data.ingredients || [],
-    steps: data.steps || [],
+export async function getRecipe(id) {
+  const dish = await request(`/recipes/${encodeURIComponent(id)}`)
+  return {
+    id: dish.id,
+    title: dish.name,
+    category: dish.category,
+    tag: dish.recipe?.tag || '',
+    time: dish.cooking_time,
+    calories: dish.calories,
+    price: dish.cost,
+    protein: dish.protein,
+    fat: dish.fat,
+    carbs: dish.carbs,
+    image: dish.image_url,
+    description: dish.description,
+    ingredients: dish.ingredients || [],
+    steps: dish.recipe?.steps || [],
   }
+}
+
+export async function createRecipe(data) {
   return request('/moderator/recipes', {
     method: 'POST',
-    body: JSON.stringify({ name: data.name, recipe: details, status: 'active' }),
+    body: JSON.stringify({
+      ...data,
+      ingredients: data.ingredients || [],
+      steps: data.steps || [],
+    }),
   })
 }
 
@@ -92,11 +111,19 @@ export async function updateProfile(data) {
   return user
 }
 
-export async function generateRation(periodDays, tags) {
+export async function generateRation(periodDays, tags, extraRequest = '', model) {
   return request('/rations/generate', {
     method: 'POST',
-    body: JSON.stringify({ period_days: periodDays, tags }),
+    body: JSON.stringify({ period_days: periodDays, tags, extra_request: extraRequest, model }),
   })
+}
+
+export async function getRations() {
+  return request('/rations')
+}
+
+export async function getRationPlan(rationId) {
+  return request(`/rations/${encodeURIComponent(rationId)}/plan`)
 }
 
 export async function getDiary() {

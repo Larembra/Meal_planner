@@ -1,40 +1,36 @@
-from __future__ import annotations
-
-from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import current_user
+from app.api.v1.catalog import meal_payload
 from app.db.session import get_db
-from app.models import Dish, User
-from app.schemas.schemas import DishRead
+from app.models import Meal, User
 
 router = APIRouter(prefix="/recipes", tags=["recipes"])
 
 
-@router.get("", response_model=list[DishRead])
-async def list_recipes(category: Optional[str] = Query(None), tag: Optional[str] = Query(None),
-                        db: AsyncSession = Depends(get_db), _: User = Depends(current_user)):
-    query = select(Dish).where(Dish.ration_id.is_not(None))
+@router.get("")
+async def list_recipes(category: str | None = Query(None), tag: str | None = Query(None),
+                       db: AsyncSession = Depends(get_db), _: User = Depends(current_user)):
+    query = select(Meal).where(Meal.status == "published")
     if category:
-        query = query.where(Dish.category == category)
+        category = {"Завтрак": "breakfast", "Обед": "lunch", "Ужин": "dinner", "Перекус": "snack"}.get(category, category)
+        query = query.where(Meal.meal_type == category)
     if tag:
-        query = query.where(Dish.tag == tag)
-    return list((await db.execute(query.order_by(Dish.id))).scalars())
+        query = query.where(Meal.tags.contains([tag]))
+    rows = (await db.execute(query.order_by(Meal.name))).scalars().all()
+    return [await meal_payload(db, meal) for meal in rows]
 
 
-@router.get("/{recipe_id}", response_model=DishRead)
+@router.get("/{recipe_id}")
 async def get_recipe(recipe_id: str, db: AsyncSession = Depends(get_db), _: User = Depends(current_user)):
-    recipe = await db.get(Dish, recipe_id)
-    if recipe is None:
+    meal = await db.get(Meal, recipe_id)
+    if meal is None or meal.status != "published":
         raise HTTPException(404, "Рецепт не найден")
-    return recipe
+    return await meal_payload(db, meal)
 
 
 @router.get("/{recipe_id}/recipe")
 async def get_recipe_details(recipe_id: str, db: AsyncSession = Depends(get_db), _: User = Depends(current_user)):
-    recipe = await db.get(Dish, recipe_id)
-    if recipe is None:
-        raise HTTPException(404, "Рецепт не найден")
-    return recipe.recipe or {}
+    value = await get_recipe(recipe_id, db, _)
+    return value["recipe"]

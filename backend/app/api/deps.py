@@ -22,14 +22,16 @@ async def current_user(
     except Exception:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Недействительный токен")
     user = await db.get(User, user_id)
-    if user is None or not user.is_active:
+    if user is None:
         raise HTTPException(status_code=401, detail="Пользователь не найден")
     return user
 
 
 def require_roles(*roles: str):
     async def checker(user: User = Depends(current_user)) -> User:
-        if user.role not in roles:
+        # The shipped database only permits the roles "user" and "admin".
+        allowed = {"admin" if role == "moderator" else role for role in roles}
+        if user.role not in allowed:
             raise HTTPException(status_code=403, detail="Недостаточно прав")
         return user
     return checker

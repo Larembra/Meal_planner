@@ -1,10 +1,15 @@
-import React from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Button, Card, ImageBox } from '../components/UI'
 import { mealRecipes, recipes, sumIngredientPrices, ingredientText } from '../data/mockData'
+import { getRecipe } from '../api'
 
 export default function RecipeDetail() {
-  const id = Number(window.location.pathname.split('/').pop())
-  const recipe = [...recipes, ...mealRecipes].find(r => r.id === id) || recipes[0]
+  const id = window.location.pathname.split('/').pop()
+  const fallback = useMemo(() => [...recipes, ...mealRecipes].find(r => String(r.id) === id) || recipes[0], [id])
+  const [recipe, setRecipe] = useState(fallback)
+  useEffect(() => {
+    getRecipe(id).then(setRecipe).catch(() => setRecipe(fallback))
+  }, [id, fallback])
 
   return (
     <div className="container recipe-detail">

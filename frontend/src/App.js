@@ -4,7 +4,6 @@ import { Home } from './pages/Home'
 import Register from './pages/Register'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
-import TodayDiet from './pages/TodayDiet'
 import GenerateDiet from './pages/GenerateDiet'
 import WeeklyDiet from './pages/WeeklyDiet'
 import Recipes from './pages/Recipes'
@@ -20,9 +19,8 @@ function Router() {
   let page
   if (path === '/') page = <Home />
   else if (path === '/profile') page = <Profile />
-  else if (path === '/diet/today') page = <TodayDiet />
+  else if (path === '/diet/today' || path === '/diet/week') page = <WeeklyDiet />
   else if (path === '/diet/generate') page = <GenerateDiet />
-  else if (path === '/diet/week') page = <WeeklyDiet />
   else if (path === '/recipes') page = <Recipes />
   else if (path === '/recipes/new') page = <RecipeForm mode="create" />
   else if (path === '/recipes/edit') page = <RecipeForm mode="edit" />

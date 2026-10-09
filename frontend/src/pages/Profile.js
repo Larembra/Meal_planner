@@ -104,7 +104,7 @@ export default function Profile() {
           <label>
             Количество приёмов пищи в день
             <select value={meals} onChange={event => setMeals(event.target.value)}>
-              {[3, 4, 5].map(value => <option key={value} value={value}>{value} приёма</option>)}
+              {[3, 4, 5].map(value => <option key={value} value={value}>{value} {value === 5 ? "приёмов" : "приёма"}</option>)}
             </select>
           </label>
           <div className="profile-summary">

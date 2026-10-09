@@ -1,174 +1,183 @@
-"""Модели предметной области планировщика питания."""
+"""SQLAlchemy mappings for the schema shipped in ``data/seed.sql``."""
 from __future__ import annotations
 
-from datetime import datetime
-from enum import Enum
-from typing import Optional, Union
+from datetime import date, datetime
+from typing import Optional
 from uuid import uuid4
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, func, JSON
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.types import TypeDecorator
+
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, Numeric, SmallInteger, String, Text, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.types import JSON, TypeDecorator
 from sqlalchemy.orm import Mapped, mapped_column
+
 from app.db.base import Base
 
 
-def uuid_value() -> str:
-    return str(uuid4())
-
-
-class JSONBCompat(TypeDecorator):
-    """JSONB в PostgreSQL и совместимый JSON в тестовой SQLite-базе."""
+class TextArray(TypeDecorator):
+    """PostgreSQL text[] with JSON storage in SQLite-based local checks."""
     impl = JSON
     cache_ok = True
 
     def load_dialect_impl(self, dialect):
-        return dialect.type_descriptor(JSONB() if dialect.name == "postgresql" else JSON())
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(ARRAY(String()))
+        return dialect.type_descriptor(JSON())
 
 
-class StrEnum(str, Enum):
-    """Совместимая с Python 3.9 реализация строкового enum."""
-
-
-class UserRole(StrEnum):
-    GUEST = "guest"
-    CLIENT = "client"
-    MODERATOR = "moderator"
-
-
-class ApplicationStatus(StrEnum):
-    DRAFT = "draft"
-    ACTIVE = "active"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
+def uuid_column(*args, **kwargs):
+    return mapped_column(UUID(as_uuid=False), *args, default=lambda: str(uuid4()), **kwargs)
 
 
 class User(Base):
     __tablename__ = "users"
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
-    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
-    hashed_password: Mapped[str] = mapped_column(String(255))
-    name: Mapped[str] = mapped_column(String(120))
-    role: Mapped[str] = mapped_column(String(30), default=UserRole.CLIENT.value)
-    age: Mapped[Optional[int]] = mapped_column(Integer)
-    height: Mapped[Optional[float]] = mapped_column(Float)
-    weight: Mapped[Optional[float]] = mapped_column(Float)
-    goal: Mapped[Optional[str]] = mapped_column(String(50))
-    allergies: Mapped[Optional[Union[dict, list]]] = mapped_column(JSONBCompat)
-    preferences: Mapped[Optional[Union[dict, list]]] = mapped_column(JSONBCompat)
-    cooking_time_minutes: Mapped[Optional[int]] = mapped_column(Integer)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    hashed_password: Mapped[str] = mapped_column("password_hash", Text, nullable=False)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), default="user", server_default="user", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
-class Ration(Base):
-    __tablename__ = "rations"
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    period_days: Mapped[int] = mapped_column(Integer, default=1)
-    tags: Mapped[Optional[list]] = mapped_column(JSONBCompat)
-    total_calories: Mapped[float] = mapped_column(Float, default=0)
-    total_price: Mapped[float] = mapped_column(Float, default=0)
-    total_protein: Mapped[float] = mapped_column(Float, default=0)
-    total_fat: Mapped[float] = mapped_column(Float, default=0)
-    total_carbs: Mapped[float] = mapped_column(Float, default=0)
-    status: Mapped[str] = mapped_column(String(30), default="draft")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+class Profile(Base):
+    __tablename__ = "profiles"
+    id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
+    user_id: Mapped[str] = uuid_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    goal: Mapped[Optional[str]] = mapped_column(String(30))
+    budget: Mapped[Optional[float]] = mapped_column(Numeric(10, 2))
+    diet_type: Mapped[str] = mapped_column(String(30), default="omnivore", server_default="omnivore", nullable=False)
+    restrictions: Mapped[Optional[str]] = mapped_column(Text)
+    meals_per_day: Mapped[int] = mapped_column(SmallInteger, default=3, server_default="3", nullable=False)
+    max_cooking_time: Mapped[Optional[int]] = mapped_column(Integer)
+    preferences: Mapped[Optional[str]] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
-class Dish(Base):
-    __tablename__ = "dishes"
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
-    ration_id: Mapped[str] = mapped_column(ForeignKey("rations.id", ondelete="CASCADE"), index=True)
-    name: Mapped[str] = mapped_column(String(255))
-    meal_type: Mapped[str] = mapped_column(String(50))
-    day_number: Mapped[int] = mapped_column(Integer)
-    macros: Mapped[dict] = mapped_column(JSONBCompat, default=dict)
-    recipe: Mapped[Optional[dict]] = mapped_column(JSONBCompat)
-    image_url: Mapped[Optional[str]] = mapped_column(String(500))
-    calories: Mapped[float] = mapped_column(Float, default=0)
-    proteins: Mapped[float] = mapped_column(Float, default=0)
-    fats: Mapped[float] = mapped_column(Float, default=0)
-    carbs: Mapped[float] = mapped_column(Float, default=0)
-    price: Mapped[float] = mapped_column(Float, default=0)
-
-    @property
-    def title(self) -> str:
-        return self.name
-
-    @property
-    def category(self) -> str:
-        return self.meal_type
-
-    @property
-    def tag(self) -> Optional[str]:
-        return None
-
-    @property
-    def time(self) -> int:
-        return 0
-
-    @property
-    def image(self) -> Optional[str]:
-        return self.image_url
-
-    @property
-    def protein(self) -> float:
-        return self.proteins
-
-    @property
-    def fat(self) -> float:
-        return self.fats
+class Meal(Base):
+    __tablename__ = "meals"
+    id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    meal_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    cooking_time: Mapped[int] = mapped_column(Integer, nullable=False)
+    servings: Mapped[int] = mapped_column(Integer, default=1, server_default="1", nullable=False)
+    calories: Mapped[float] = mapped_column(Numeric(7, 2), nullable=False)
+    protein: Mapped[float] = mapped_column(Numeric(7, 2), nullable=False)
+    fat: Mapped[float] = mapped_column(Numeric(7, 2), nullable=False)
+    carbs: Mapped[float] = mapped_column(Numeric(7, 2), nullable=False)
+    diet_type: Mapped[str] = mapped_column(String(30), default="omnivore", server_default="omnivore", nullable=False)
+    allergens: Mapped[list[str]] = mapped_column(TextArray, default=list, server_default="{}", nullable=False)
+    tags: Mapped[list[str]] = mapped_column(TextArray, default=list, server_default="{}", nullable=False)
+    created_by: Mapped[Optional[str]] = uuid_column(ForeignKey("users.id", ondelete="SET NULL"))
+    status: Mapped[str] = mapped_column(String(20), default="published", server_default="published", nullable=False)
+    cost: Mapped[float] = mapped_column(Numeric(10, 2), default=0, server_default="0", nullable=False)
+    goal: Mapped[str] = mapped_column(String(30), default="maintain", server_default="maintain", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
 class Product(Base):
     __tablename__ = "products"
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
-    dish_id: Mapped[str] = mapped_column(ForeignKey("dishes.id", ondelete="CASCADE"))
-    name: Mapped[str] = mapped_column(String(160))
-    quantity: Mapped[float] = mapped_column(Float, default=1)
-    unit: Mapped[str] = mapped_column(String(30), default="шт")
-    calories_per_100g: Mapped[float] = mapped_column(Float, default=0)
-    category: Mapped[Optional[str]] = mapped_column(String(100))
-    price: Mapped[float] = mapped_column(Float, default=0)
+    id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
+    name: Mapped[str] = mapped_column(String(150), unique=True, nullable=False)
+    category: Mapped[str] = mapped_column(String(50), nullable=False)
+    unit: Mapped[str] = mapped_column(String(20), nullable=False)
+    calories: Mapped[float] = mapped_column(Numeric(7, 2), default=0, server_default="0", nullable=False)
+    protein: Mapped[float] = mapped_column(Numeric(7, 2), default=0, server_default="0", nullable=False)
+    fat: Mapped[float] = mapped_column(Numeric(7, 2), default=0, server_default="0", nullable=False)
+    carbs: Mapped[float] = mapped_column(Numeric(7, 2), default=0, server_default="0", nullable=False)
+    cost: Mapped[float] = mapped_column(Numeric(10, 2), default=0, server_default="0", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
-class ModeratorRecipe(Base):
-    __tablename__ = "moderator_recipes"
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
-    moderator_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    name: Mapped[str] = mapped_column(String(255))
-    recipe: Mapped[dict] = mapped_column(JSONBCompat, default=dict)
-    status: Mapped[str] = mapped_column(String(30), default="draft")
+class MealProduct(Base):
+    __tablename__ = "meal_products"
+    __table_args__ = (UniqueConstraint("meal_id", "product_id"),)
+    id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
+    meal_id: Mapped[str] = uuid_column(ForeignKey("meals.id", ondelete="CASCADE"), nullable=False)
+    product_id: Mapped[str] = uuid_column(ForeignKey("products.id", ondelete="RESTRICT"), nullable=False)
+    quantity: Mapped[float] = mapped_column(Numeric(8, 2), nullable=False)
 
 
-class FoodDiary(Base):
-    __tablename__ = "food_diary"
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    dish_id: Mapped[Optional[str]] = mapped_column(ForeignKey("dishes.id", ondelete="SET NULL"))
-    entry_date: Mapped[str] = mapped_column(String(10), index=True)
-    meal_type: Mapped[str] = mapped_column(String(50))
-    calories: Mapped[float] = mapped_column(Float, default=0)
-    note: Mapped[Optional[str]] = mapped_column(Text)
-    completed: Mapped[bool] = mapped_column(Boolean, default=False)
+class Ration(Base):
+    __tablename__ = "rations"
+    id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
+    user_id: Mapped[str] = uuid_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    date_from: Mapped[date] = mapped_column(Date, nullable=False)
+    date_to: Mapped[date] = mapped_column(Date, nullable=False)
+    calories_target: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="draft", server_default="draft", nullable=False)
+    protein_target: Mapped[Optional[float]] = mapped_column(Numeric(8, 2))
+    fat_target: Mapped[Optional[float]] = mapped_column(Numeric(8, 2))
+    carbs_target: Mapped[Optional[float]] = mapped_column(Numeric(8, 2))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
-class Application(Base):
-    __tablename__ = "applications"
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    ration_id: Mapped[Optional[str]] = mapped_column(ForeignKey("rations.id", ondelete="SET NULL"))
-    items: Mapped[Union[list, dict]] = mapped_column(JSONBCompat, default=list)
-    status: Mapped[str] = mapped_column(String(30), default=ApplicationStatus.DRAFT.value)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+class RationMeal(Base):
+    __tablename__ = "ration_meals"
+    __table_args__ = (UniqueConstraint("ration_id", "date", "meal_type"),)
+    id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
+    ration_id: Mapped[str] = uuid_column(ForeignKey("rations.id", ondelete="CASCADE"), nullable=False)
+    meal_id: Mapped[str] = uuid_column(ForeignKey("meals.id", ondelete="RESTRICT"), nullable=False)
+    date: Mapped[date] = mapped_column(Date, nullable=False)
+    meal_type: Mapped[str] = mapped_column(String(30), nullable=False)
+    servings: Mapped[float] = mapped_column(Numeric(5, 2), default=1, server_default="1", nullable=False)
 
 
-class RefreshToken(Base):
-    __tablename__ = "refresh_tokens"
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid_value)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    jti: Mapped[str] = mapped_column(String(64), unique=True, index=True)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+class Tracking(Base):
+    __tablename__ = "tracking"
+    __table_args__ = (UniqueConstraint("user_id", "ration_meal_id"),)
+    id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
+    user_id: Mapped[str] = uuid_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    ration_meal_id: Mapped[str] = uuid_column(ForeignKey("ration_meals.id", ondelete="CASCADE"), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="planned", server_default="planned", nullable=False)
+    eaten_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+
+
+class Request(Base):
+    __tablename__ = "requests"
+    id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
+    user_id: Mapped[str] = uuid_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    type: Mapped[str] = mapped_column(String(50), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="new", server_default="new", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+
+class ShoppingList(Base):
+    __tablename__ = "shopping_lists"
+    id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
+    user_id: Mapped[str] = uuid_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    ration_id: Mapped[Optional[str]] = uuid_column(ForeignKey("rations.id", ondelete="SET NULL"))
+    status: Mapped[str] = mapped_column(String(20), default="active", server_default="active", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class ShoppingItem(Base):
+    __tablename__ = "shopping_items"
+    __table_args__ = (UniqueConstraint("shopping_list_id", "product_id"),)
+    id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
+    shopping_list_id: Mapped[str] = uuid_column(ForeignKey("shopping_lists.id", ondelete="CASCADE"), nullable=False)
+    product_id: Mapped[str] = uuid_column(ForeignKey("products.id", ondelete="RESTRICT"), nullable=False)
+    quantity: Mapped[float] = mapped_column(Numeric(8, 2), nullable=False)
+    is_purchased: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
+
+
+class AIGeneration(Base):
+    __tablename__ = "ai_generations"
+    id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
+    user_id: Mapped[str] = uuid_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    ration_id: Mapped[Optional[str]] = uuid_column(ForeignKey("rations.id", ondelete="SET NULL"))
+    prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    response: Mapped[Optional[str]] = mapped_column(Text)
+    provider: Mapped[Optional[str]] = mapped_column(String(50))
+    model: Mapped[Optional[str]] = mapped_column(String(150))
+    status: Mapped[str] = mapped_column(String(30), default="pending", server_default="pending", nullable=False)
+    input_tokens: Mapped[Optional[int]] = mapped_column(Integer)
+    output_tokens: Mapped[Optional[int]] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))

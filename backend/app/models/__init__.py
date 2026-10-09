@@ -1,6 +1,3 @@
-from app.models.models import (Application, ApplicationStatus, Dish, FoodDiary,
-                               ModeratorRecipe, Product, RefreshToken, Ration,
-                               User, UserRole)
+from app.models.models import AIGeneration, Meal, MealProduct, Product, Profile, Ration, RationMeal, Request, ShoppingItem, ShoppingList, Tracking, User
 
-__all__ = ["Application", "ApplicationStatus", "Dish", "FoodDiary", "ModeratorRecipe",
-           "Product", "RefreshToken", "Ration", "User", "UserRole"]
+__all__ = ["AIGeneration", "Meal", "MealProduct", "Product", "Profile", "Ration", "RationMeal", "Request", "ShoppingItem", "ShoppingList", "Tracking", "User"]

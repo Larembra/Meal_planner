@@ -54,7 +54,7 @@ export default function Recipes() {
   const unselectedMatches = matchingTags.filter(tag => !draftTags.includes(tag))
 
   const sourceRecipes = apiRecipes.length ? apiRecipes : recipes
-  const isModerator = JSON.parse(localStorage.getItem("meal_planner_user") || "null")?.role === "moderator"
+  const isModerator = JSON.parse(localStorage.getItem("meal_planner_user") || "null")?.role === "admin"
   const [favorites, setFavorites] = useState(() => JSON.parse(localStorage.getItem("favorite_recipes") || "[]"))
   const toggleFavorite = id => setFavorites(previous => {
     const next = previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id]

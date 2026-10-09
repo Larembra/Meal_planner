@@ -1097,7 +1097,8 @@ select:focus {
   gap: 8px;
   margin-bottom: 18px;
 }
-.calendar div {
+.calendar div,
+.calendar button {
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1106,7 +1107,9 @@ select:focus {
   font-weight: 700;
   color: var(--muted);
 }
-.calendar div.selected {
+.calendar button { cursor: pointer; }
+.calendar div.selected,
+.calendar button.selected {
   background: var(--green);
   color: #fff;
   border-color: var(--green);

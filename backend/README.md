@@ -1,93 +1,137 @@
 # Backend Meal Planner
 
-Backend построен на FastAPI, PostgreSQL, SQLAlchemy 2.0 с async-подключением,
-Alembic, Pydantic v2 и JWT-аутентификацией.
+FastAPI работает с PostgreSQL схемы, поставляемой в `data/seed.sql`. Снимок создаётся скриптом `data/create_database.py`. API не создаёт и не мигрирует таблицы при запуске: сначала создайте базу из снимка. Не запускайте прежнюю миграцию создания таблиц; единственная текущая миграция расширяет допустимое значение слота рациона и запускается вручную по инструкции ниже.
 
-## Локальный запуск без Docker
+## Windows: запуск через Docker Desktop (рекомендуется)
 
-Установите PostgreSQL и создайте базу:
+Нужны Git, Docker Desktop с включённым Linux containers и Node.js LTS. Для генерации рациона также нужен ключ OpenRouter. Команды выполняются в PowerShell из корня репозитория.
 
-```bash
-brew install postgresql@16
-brew services start postgresql@16
-createdb meal_planner
+Создайте локальный файл настроек из шаблона, если его ещё нет, и внесите в `backend/.env` свои значения `OPENROUTER_API_KEY`, `SECRET_KEY`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS` и `DATABASE_URL`:
+
+```powershell
+if (!(Test-Path backend\.env)) { Copy-Item backend\.env.example backend\.env }
+notepad backend\.env
 ```
 
-Перейдите в каталог backend и создайте виртуальное окружение:
+Контейнер API получает настройки через `env_file: .env`. Значение `DATABASE_URL` внутри контейнера автоматически заменяется адресом сервиса PostgreSQL `db`; остальные настройки берутся из файла.
 
-```bash
-cd /Users/artem/PycharmProjects/Meal_planner/backend
-python3 -m venv .venv
-source .venv/bin/activate
+1. Запустите PostgreSQL с установленным pgvector:
+
+   ```powershell
+   cd backend
+   docker compose up -d db
+   ```
+
+2. Соберите образ API и установите снимок базы данных:
+
+   ```powershell
+   docker compose build api
+   docker compose run --rm api python data/create_database.py
+   ```
+
+   Команда создаёт базу `Meal_planner` и загружает `data/seed.sql`. Скрипт проверяет наличие расширений и целевой базы, поэтому повторное выполнение для уже созданной базы завершится сообщением о том, что база существует. Для пересоздания базы удалите volume `backend_postgres_data` командой `docker compose down -v` — это удалит данные PostgreSQL.
+
+   Примените миграцию, которая добавляет отдельный слот второго завтрака к существующему ограничению БД (таблицы и их связи не меняются):
+
+   ```powershell
+   docker compose run --rm api alembic upgrade head
+   ```
+
+3. Запустите API:
+
+   ```powershell
+   docker compose up api
+   ```
+
+   API доступен на `http://localhost:8000`, документация — `http://localhost:8000/docs`, проверка — `http://localhost:8000/health`.
+
+4. В другом окне PowerShell запустите фронтенд:
+
+   ```powershell
+   cd frontend
+   npm ci
+   npm start
+   ```
+
+   Откройте `http://localhost:3000`. Адрес API по умолчанию уже настроен на `http://localhost:8000/api/v1`.
+
+При первом старте зарегистрируйте пользователя через интерфейс. В снимке разрешены только роли `user` и `admin`; для работы с созданием рецептов назначьте нужному пользователю роль администратора SQL-командой из psql:
+
+```sql
+UPDATE users SET role = 'admin' WHERE email = 'ваш-email@example.com';
+```
+
+В Docker psql можно открыть так (из каталога `backend`):
+
+```powershell
+docker compose exec db psql -U postgres -d Meal_planner
+```
+
+## Windows: запуск API локально
+
+Для нативного запуска установите Python 3.11 или 3.12 и PostgreSQL 16 с серверными расширениями `pgcrypto` и `vector` (pgvector). Установка `sentence-transformers` скачивает PyTorch и модель эмбеддингов; первый запуск генерации дополнительно скачает `paraphrase-multilingual-MiniLM-L12-v2`. Создайте базу именно через снимок, а не через `alembic upgrade`.
+
+Из корня проекта:
+
+```powershell
+cd backend
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Создайте `.env` на основе `.env.example`. Для локального PostgreSQL используйте
-адрес `localhost`, а не `db`:
+Если PowerShell запрещает активацию окружения, разрешите скрипты только для текущего окна:
 
-```env
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/meal_planner
-SECRET_KEY=change-me-in-production
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-REFRESH_TOKEN_EXPIRE_DAYS=7
-DEBUG=false
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
 ```
 
-Если у локального пользователя PostgreSQL нет пароля, используйте:
+Задайте параметры, совпадающие с PostgreSQL-пользователем, и установите снимок. Значения по умолчанию скрипта — `localhost:5432`, пользователь и пароль `postgres`, база `Meal_planner`:
 
-```env
-DATABASE_URL=postgresql+asyncpg://postgres@localhost:5432/meal_planner
-```
-
-Примените миграции и заполните демонстрационные данные:
-
-```bash
+```powershell
+$env:PGHOST = "localhost"
+$env:PGPORT = "5432"
+$env:PGUSER = "postgres"
+$env:PGPASSWORD = "ваш-пароль"
+$env:PGDATABASE = "Meal_planner"
+python data/create_database.py
 alembic upgrade head
-python seed.py
 ```
 
-Запустите приложение:
+Сначала загружается снимок исходной схемы, затем вручную применяется миграция слота второго завтрака. Приложение читает `DATABASE_URL`, `SECRET_KEY`, сроки токенов и `OPENROUTER_API_KEY` непосредственно из `backend/.env`. Проверьте, что в файле указан URL локальной базы (`localhost`), затем запустите сервер:
 
-```bash
-uvicorn app.main:app --reload --port 8000
+```powershell
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Проверка доступности:
+Откройте `http://localhost:8000/docs`. Для остановки сервера нажмите `Ctrl+C`; для выхода из виртуального окружения выполните `deactivate`.
 
-```text
-http://localhost:8000/health
-http://localhost:8000/docs
+## Настройки
+
+- `DATABASE_URL` — async SQLAlchemy URL, например `postgresql+asyncpg://postgres:password@localhost:5432/Meal_planner`.
+- `SECRET_KEY` — секрет для JWT; задайте свой для локального и производственного запуска.
+- `ACCESS_TOKEN_EXPIRE_MINUTES` — срок access-токена (по умолчанию 30 минут).
+- `REFRESH_TOKEN_EXPIRE_DAYS` — срок refresh-токена (по умолчанию 7 дней).
+- `DEBUG` — включает SQL-логирование при значении `true`.
+- `OPENROUTER_API_KEY` — обязательный ключ OpenRouter для `/api/v1/rations/generate`.
+- `OPENROUTER_MODEL` — модель по умолчанию `apodex/apodex-1.1-mini:free`; запрос может передать другую модель.
+- `EMBEDDING_MODEL` — модель поиска по векторным эмбеддингам; по умолчанию `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`.
+- `OPENROUTER_TIMEOUT_SECONDS` — таймаут запроса модели (по умолчанию 120 секунд).
+- `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` — настройки скрипта создания базы.
+
+`POST /api/v1/rations/generate` требует авторизацию и `OPENROUTER_API_KEY`. Тело запроса:
+
+```json
+{
+  "period_days": 7,
+  "tags": ["Больше белка"],
+  "extra_request": "Простые блюда из доступных продуктов",
+  "model": "apodex/apodex-1.1-mini:free"
+}
 ```
 
-## Запуск через Docker
+Поле `model` можно опустить — тогда используется `OPENROUTER_MODEL`. Ответ генерации содержит запись рациона; план блюд возвращается через `GET /api/v1/rations/{id}/plan`. Число блюд может различаться по дням. Профиль поддерживает от 3 до 5 приёмов пищи; для второго завтрака применяется отдельный слот `second_breakfast`, а блюда для обоих завтраков выбираются из одного набора кандидатов `breakfast`.
 
-Из каталога backend:
-
-```bash
-docker compose up --build
-```
-
-## Тесты
-
-```bash
-pytest -q
-```
-
-## Основные маршруты
-
-- `/api/v1/auth` — регистрация, вход, refresh, выход и текущий пользователь;
-- `/api/v1/users/me/profile` — профиль пользователя;
-- `/api/v1/rations` — создание и просмотр рационов;
-- `/api/v1/dishes` — публичный каталог блюд;
-- `/api/v1/applications` — заявки пользователя;
-- `/api/v1/diary` — дневник питания;
-- `/api/v1/moderator/recipes` — рецепты модератора.
-
-Тестовые пользователи после запуска `seed.py`:
-
-```text
-client@test.ru / password123
-moderator@test.ru / password123
-```
-
-Файл `.env` содержит локальные настройки и не должен добавляться в Git.
+Схема базы остаётся определённой файлами в `data/`; запуск приложения не создаёт дополнительные таблицы. Текущие маршруты: `/api/v1/auth`, `/api/v1/users/me/profile`, `/api/v1/dishes`, `/api/v1/recipes`, `/api/v1/rations`, `/api/v1/diary` и `/api/v1/moderator/recipes`.

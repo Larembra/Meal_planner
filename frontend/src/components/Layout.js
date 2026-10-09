@@ -3,7 +3,7 @@ import { clearSession, getProfile } from "../api";
 
 const nav = [
   ["/", "Главная"],
-  ["/diet/today", "Мой рацион"],
+  ["/diet/week", "Мой рацион"],
   ["/recipes", "Рецепты"],
   ["/shopping", "Покупки"],
   ["/tracking", "Трекинг"],
