@@ -48,11 +48,6 @@ export default function GenerateDiet() {
             <option value="openrouter/free">OpenRouter Free (автовыбор)</option>
           </select>
         </label>
-        <div className="chips">
-          {["Быстро готовить", "Недорого", "Больше белка", "Без молочных продуктов", "Минимум мытья посуды"].map(tag =>
-            <button type="button" key={tag} className={tags.includes(tag) ? "selected" : ""}
-              onClick={() => setTags(v => v.includes(tag) ? v.filter(x => x !== tag) : [...v, tag])}>{tag}</button>)}
-        </div>
         {done && (
           <div className="success">
             Рацион успешно сгенерирован и сохранён.
@@ -64,13 +59,7 @@ export default function GenerateDiet() {
           💫 Сгенерировать рацион питания
         </Button>
       </Card>
-      <Card className="warning">
-        <strong>Превышен бюджет</strong>
-        <p>
-          Выбранные ограничения не укладываются в 800 рублей. Попробуйте поднять
-          лимит или убрать тег «Недорого».
-        </p>
-      </Card>
+
     </div>
   );
 }
