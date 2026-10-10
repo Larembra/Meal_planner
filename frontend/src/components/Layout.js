@@ -37,7 +37,7 @@ export default function Layout({ children }) {
           <span>AI РАЦИОН</span>
         </a>
         <nav>
-          {nav.map(([href, label]) => (
+          {user && nav.map(([href, label]) => (
             <a
               key={href}
               className={

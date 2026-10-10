@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
+from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,7 +14,7 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/Meal_planner"
     secret_key: str = "development-secret-change-me"
-    openrouter_api_key: str | None = None
+    openrouter_api_key: Optional[str] = None
     openrouter_model: str = "apodex/apodex-1.1-mini:free"
     embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     openrouter_timeout_seconds: int = 120

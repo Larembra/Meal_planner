@@ -67,6 +67,12 @@ class RationRead(BaseModel):
     created_at: Optional[datetime] = None
 
 
+class RationMealCreate(BaseModel):
+    meal_id: str
+    entry_date: date
+    meal_type: str
+
+
 class DiaryCreate(BaseModel):
     entry_date: date
     meal_type: str
@@ -106,3 +112,4 @@ class RecipeCreate(BaseModel):
     image: Optional[str] = None
     ingredients: list[dict] = Field(default_factory=list)
     steps: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)

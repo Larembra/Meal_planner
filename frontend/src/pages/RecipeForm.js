@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button, Card, ImageBox } from "../components/UI";
 import { recipes, sumIngredientPrices, ingredientCategories } from "../data/mockData";
-import { createRecipe } from "../api";
+import { createRecipe, getRecipe, updateRecipe } from "../api";
 
 const emptyIngredient = () => ({
   name: "",
@@ -17,6 +17,7 @@ const defaultIngredients = [
 ];
 
 export default function RecipeForm({ mode }) {
+  const recipeId = new URLSearchParams(window.location.search).get("id");
   const existing = recipes[0];
   const [name, setName] = useState(mode === "edit" ? existing.title : "");
   const [category, setCategory] = useState(mode === "edit" ? existing.category : "Ужин");
@@ -25,6 +26,7 @@ export default function RecipeForm({ mode }) {
   const [protein, setProtein] = useState(mode === "edit" ? existing.protein : 0);
   const [fat, setFat] = useState(mode === "edit" ? existing.fat : 0);
   const [carbs, setCarbs] = useState(mode === "edit" ? existing.carbs : 0);
+  const [tags, setTags] = useState(mode === "edit" ? (existing.tags || []) : []);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [steps, setSteps] = useState(
@@ -39,6 +41,22 @@ export default function RecipeForm({ mode }) {
       : defaultIngredients.map(item => ({ ...item })),
   );
   const [image, setImage] = useState(mode === "edit" ? existing.image : "");
+  useEffect(() => {
+    if (mode !== "edit" || !recipeId) return;
+    getRecipe(recipeId).then(value => {
+      setName(value.title || "");
+      setCategory(value.category || "Ужин");
+      setTime(value.time || 0);
+      setCalories(value.calories || 0);
+      setProtein(value.protein || 0);
+      setFat(value.fat || 0);
+      setCarbs(value.carbs || 0);
+      setTags(value.tags || []);
+      setImage(value.image || "");
+      setSteps(value.steps || []);
+      setIngredients((value.ingredients || []).map(item => ({ ...item, category: item.category || ingredientCategories[2] })));
+    }).catch(err => setError(err.message));
+  }, [mode, recipeId]);
   const addStep = () => setSteps([...steps, ""]);
   const updateStep = (i, v) =>
     setSteps(steps.map((x, idx) => (idx === i ? v : x)));
@@ -60,7 +78,7 @@ export default function RecipeForm({ mode }) {
     setError("");
     setSaving(true);
     try {
-      await createRecipe({
+      const payload = {
         name,
         category,
         time: Number(time) || 0,
@@ -72,7 +90,10 @@ export default function RecipeForm({ mode }) {
         image,
         ingredients,
         steps,
-      });
+        tags,
+      };
+      if (mode === "edit" && recipeId) await updateRecipe(recipeId, payload);
+      else await createRecipe(payload);
       window.location.href = "/recipes";
     } catch (err) {
       setError(err.message);
@@ -196,6 +217,14 @@ export default function RecipeForm({ mode }) {
         </div>
         <div>
           <Card>
+            <label>
+              Теги
+              <input
+                value={tags.join(", ")}
+                onChange={e => setTags(e.target.value.split(",").map(tag => tag.trim()).filter(Boolean))}
+                placeholder="Например: быстро, белок, веган"
+              />
+            </label>
             <h3>Шаги приготовления</h3>
             {steps.map((step, i) => (
               <div className="step-editor" key={i}>

@@ -4,3 +4,8 @@
 __pycache__/
 *.py[cod]
 *.env
+backend/.env
+*.env.local
+*.env.*.local
+backend/*.log
+*.log

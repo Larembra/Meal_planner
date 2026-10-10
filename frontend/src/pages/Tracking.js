@@ -1,59 +1,24 @@
-import React from "react";
-import { Card, ProgressRing } from "../components/UI";
+import React, { useEffect, useState } from "react";
+import { Button, Card } from "../components/UI";
+import { addDiaryEntry, deleteDiaryEntry, getDiary } from "../api";
 
 export default function Tracking() {
-  return (
-    <div className="container">
-      <div className="page-title">
-        <div>
-          <h1>Дневник питания и трекинг</h1>
-          <p>
-            Следите за прогрессом соблюдения планов КБЖУ в автоматическом режиме
-          </p>
-        </div>
-        <span className="streak">🔥 12 дней строго по плану!</span>
-      </div>
-      <div className="tracking-grid">
-        <Card>
-          <h3>Потребление на сегодня (Пятница)</h3>
-          <div className="rings large">
-            <ProgressRing
-              value={78}
-              label="Калории"
-              unit="1420 ккал / 1800 ккал"
-            />
-            <ProgressRing value={76} label="Белки" unit="92г / 120г" />
-            <ProgressRing value={73} label="Жиры" unit="48г / 65г" />
-            <ProgressRing value={86} label="Углеводы" unit="155г / 180г" />
-          </div>
-        </Card>
-        <Card>
-          <h3>Соблюдение КБЖУ за неделю</h3>
-          <div className="chart-bars">
-            {[72, 82, 68, 88, 78, 56, 42].map((v, i) => (
-              <div key={i}>
-                <span style={{ height: `${v}%` }}></span>
-                <small>{["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"][i]}</small>
-              </div>
-            ))}
-          </div>
-        </Card>
-        <Card className="full">
-          <h3>Выполненные приемы пищи</h3>
-          {[
-            ["Завтрак: Сырники из творога с ягодами", "09:00"],
-            ["Обед: Борщ со сметаной и ржаным хлебом", "14:15"],
-            ["Перекус: Йогурт греческий с миндалем", "17:00"],
-            ["Ужин: Форель на гриле с брокколи", "20:00"],
-          ].map(([x, t]) => (
-            <div className="log-row" key={x}>
-              <span>✓</span>
-              <div>{x}</div>
-              <time>{t}</time>
-            </div>
-          ))}
-        </Card>
-      </div>
-    </div>
-  );
+  const [entries, setEntries] = useState([]);
+  const [error, setError] = useState("");
+  const load = () => getDiary().then(setEntries).catch(err => setError(err.message));
+  useEffect(load, []);
+  const toggle = async entry => {
+    try { const updated = await addDiaryEntry({ entry_date: entry.entry_date, meal_type: entry.meal_type, meal_id: entry.meal_id, completed: !entry.completed }); setEntries(values => values.map(value => value.id === updated.id ? updated : value)); }
+    catch (err) { setError(err.message); }
+  };
+  const remove = async id => { await deleteDiaryEntry(id); setEntries(values => values.filter(value => value.id !== id)); };
+  return <div className="container">
+    <div className="page-title"><div><h1>Дневник питания и трекинг</h1><p>Отмечайте выполненные приёмы пищи в текущем рационе.</p></div></div>
+    {error && <p role="alert">{error}</p>}
+    <Card><h3>Приёмы пищи</h3>{entries.map(entry => <div className="log-row" key={entry.id}>
+      <input type="checkbox" checked={entry.completed} onChange={() => toggle(entry)} />
+      <div>{entry.meal_type} · {entry.calories} ккал<br /><small>{entry.entry_date}</small></div>
+      <Button variant="secondary" onClick={() => remove(entry.id)}>Удалить</Button>
+    </div>)}{!entries.length && <p>В текущем рационе пока нет отмечаемых блюд.</p>}</Card>
+  </div>;
 }

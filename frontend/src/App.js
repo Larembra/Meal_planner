@@ -16,6 +16,16 @@ function Router() {
   const path = window.location.pathname
   if (path === '/register') return <Register />
   if (path === '/login') return <Login />
+  const authenticated = Boolean(localStorage.getItem('meal_planner_access_token'))
+  if (!authenticated && path !== '/') {
+    window.location.replace('/login')
+    return null
+  }
+  const currentUser = JSON.parse(localStorage.getItem('meal_planner_user') || 'null')
+  if ((path === '/recipes/new' || path === '/recipes/edit') && currentUser?.role !== 'admin') {
+    window.location.replace('/recipes')
+    return null
+  }
   let page
   if (path === '/') page = <Home />
   else if (path === '/profile') page = <Profile />

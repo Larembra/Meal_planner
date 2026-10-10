@@ -1,15 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Button, Card, ImageBox } from '../components/UI'
 import { recipes, sumIngredientPrices } from '../data/mockData'
-import { getRecipes } from '../api'
-
-const recipeTags = [...new Set(recipes.map(r => r.tag).filter(Boolean))]
+import { deleteRecipe, getRecipes } from '../api'
 
 export default function Recipes() {
   const [apiRecipes, setApiRecipes] = useState([])
   const [apiError, setApiError] = useState('')
+  const [apiLoaded, setApiLoaded] = useState(false)
   useEffect(() => {
-    getRecipes().then(setApiRecipes).catch(err => setApiError(err.message))
+    getRecipes()
+      .then(value => {
+        setApiRecipes(value)
+        setApiLoaded(true)
+      })
+      .catch(err => setApiError(err.message))
   }, [])
   const [q, setQ] = useState('')
   const [cat, setCat] = useState('Все блюда')
@@ -18,6 +22,14 @@ export default function Recipes() {
   const [tagQuery, setTagQuery] = useState('')
   const [draftTags, setDraftTags] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
+  const sourceRecipes = apiLoaded ? apiRecipes : recipes
+  const recipeTags = useMemo(
+    () => [...new Set([
+      ...sourceRecipes.flatMap(r => r.tags || [r.tag]).filter(Boolean),
+      'Избранное',
+    ])],
+    [sourceRecipes]
+  )
 
   const toggleQuickFilter = filter => {
     setQuickFilters(filters =>
@@ -49,11 +61,11 @@ export default function Recipes() {
     const query = tagQuery.trim().toLowerCase()
     if (!query) return []
     return recipeTags.filter(tag => tag.toLowerCase().includes(query))
-  }, [tagQuery])
+  }, [tagQuery, recipeTags])
 
   const unselectedMatches = matchingTags.filter(tag => !draftTags.includes(tag))
+  const favoriteTag = 'Избранное'
 
-  const sourceRecipes = apiRecipes.length ? apiRecipes : recipes
   const isModerator = JSON.parse(localStorage.getItem("meal_planner_user") || "null")?.role === "admin"
   const [favorites, setFavorites] = useState(() => JSON.parse(localStorage.getItem("favorite_recipes") || "[]"))
   const toggleFavorite = id => setFavorites(previous => {
@@ -61,6 +73,16 @@ export default function Recipes() {
     localStorage.setItem("favorite_recipes", JSON.stringify(next))
     return next
   })
+  const removeRecipe = async (event, recipe) => {
+    event.stopPropagation()
+    if (!window.confirm(`Удалить рецепт «${recipe.title}» полностью?`)) return
+    try {
+      await deleteRecipe(recipe.id)
+      setApiRecipes(previous => previous.filter(item => item.id !== recipe.id))
+    } catch (err) {
+      setApiError(err.message)
+    }
+  }
   const list = useMemo(
     () => sourceRecipes.filter(r => {
       const matchesQuery = [
@@ -76,10 +98,13 @@ export default function Recipes() {
 
       const matchesCategory = cat === 'Все блюда' || r.category === cat
 
-      const matchesTags =
-        selectedTags.length === 0 || selectedTags.includes(r.tag)
+      const recipeTagValues = r.tags || [r.tag]
+      const matchesTags = selectedTags.length === 0 || selectedTags.some(tag =>
+        tag === favoriteTag ? favorites.includes(r.id) : recipeTagValues.includes(tag)
+      )
 
       const matchesQuickFilters = quickFilters.every(filter => {
+        if (filter === favoriteTag) return favorites.includes(r.id)
         if (filter === 'Меньше 20 минут') return r.time < 20
         if (filter === 'Высокобелковые') return r.protein >= 30
         if (filter === 'До 300 рублей') {
@@ -91,7 +116,7 @@ export default function Recipes() {
 
       return matchesQuery && matchesCategory && matchesTags && matchesQuickFilters
     }),
-    [q, cat, selectedTags, quickFilters, sourceRecipes]
+    [q, cat, selectedTags, quickFilters, sourceRecipes, favorites]
   )
 
   const cats = [
@@ -102,7 +127,7 @@ export default function Recipes() {
     ['Перекусы', 'Перекус']
   ]
 
-  const quick = ['Меньше 20 минут', 'Высокобелковые', 'До 300 рублей']
+  const quick = ['Избранное', 'Меньше 20 минут', 'Высокобелковые', 'До 300 рублей']
 
   const openRecipe = id => {
     window.location.href = `/recipes/${id}`
@@ -252,14 +277,14 @@ export default function Recipes() {
 
               <div className="recipe-price">Цена: {sumIngredientPrices(r.ingredients) || r.price || 0} ₽</div>
 
-              <button type="button" className="edit-icon"
+              <button type="button" className="edit-icon favorite-icon"
                 title={favorites.includes(r.id) ? "Убрать из избранного" : "Добавить в избранное"}
                 aria-label={favorites.includes(r.id) ? "Убрать из избранного" : "Добавить в избранное"}
                 onClick={event => { event.stopPropagation(); toggleFavorite(r.id) }}
                 onKeyDown={event => event.stopPropagation()}
               >{favorites.includes(r.id) ? "♥" : "♡"}</button>
               {isModerator && <a
-                className="edit-icon"
+                className="edit-icon edit-recipe-icon"
                 href={`/recipes/edit?id=${r.id}`}
                 title="Редактировать"
                 aria-label={`Редактировать рецепт ${r.title}`}
@@ -268,6 +293,16 @@ export default function Recipes() {
               >
                 ✎
               </a>}
+              {isModerator && <button
+                type="button"
+                className="edit-icon delete-recipe-icon"
+                title="Удалить рецепт полностью"
+                aria-label={`Удалить рецепт ${r.title}`}
+                onClick={event => removeRecipe(event, r)}
+                onKeyDown={event => event.stopPropagation()}
+              >
+                ×
+              </button>}
             </div>
           </Card>
         ))}

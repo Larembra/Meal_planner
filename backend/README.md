@@ -4,6 +4,48 @@
 
 ## macOS: запуск через Docker Desktop
 
+### Быстрый запуск текущей версии без конфликта портов
+
+В проекте PostgreSQL публикуется на `55432`, потому что порт `5432` часто занят локальным PostgreSQL. Выполняйте команды в двух терминалах.
+
+Терминал 1 — база и API:
+
+```bash
+cd /Users/artem/PycharmProjects/Meal_planner/backend
+docker compose up -d db
+DATABASE_URL='postgresql+asyncpg://postgres:postgres@127.0.0.1:55432/Meal_planner' \
+.venv/bin/alembic upgrade head
+DATABASE_URL='postgresql+asyncpg://postgres:postgres@127.0.0.1:55432/Meal_planner' \
+.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload \
+2>&1 | tee backend.log
+```
+
+Если появится `Address already in use`, порт уже занят старым Uvicorn. Завершите только процесс на 8000:
+
+```bash
+PIDS=$(lsof -tiTCP:8000 -sTCP:LISTEN); [ -z "$PIDS" ] || kill $PIDS
+```
+
+Терминал 2 — frontend:
+
+```bash
+cd /Users/artem/PycharmProjects/Meal_planner/frontend
+npm ci
+npm start
+```
+
+Откройте `http://localhost:3000`. API: `http://localhost:8000`, Swagger: `http://localhost:8000/docs`.
+
+Тестовые аккаунты после применения изменений:
+
+| Роль | Email | Пароль |
+|---|---|---|
+| Клиент | `client.test@example.com` | `test1234` |
+| Администратор/модератор | `moderator.test@example.com` | `test1234` |
+| Пользователь | `user.test@example.com` | `test1234` |
+
+Гость видит только `/`. Попытка открыть любую другую страницу отправляет на `/login`.
+
 Это рекомендуемый способ для macOS: PostgreSQL и pgvector запускаются в контейнере, поэтому устанавливать их отдельно через Homebrew не нужно.
 
 ### 1. Установите необходимое ПО

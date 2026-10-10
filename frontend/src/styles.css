@@ -720,6 +720,19 @@ select:focus {
 .recipe-card .edit-icon {
   cursor: pointer;
 }
+.recipe-card .favorite-icon {
+  right: 14px;
+  top: 14px;
+}
+.recipe-card .edit-recipe-icon {
+  right: 54px;
+  top: 14px;
+}
+.recipe-card .delete-recipe-icon {
+  right: 14px;
+  top: 54px;
+  color: var(--danger);
+}
 .dark-cta {
   background: var(--dark);
   color: #fff;

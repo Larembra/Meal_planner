@@ -5,7 +5,7 @@ import { generateRation } from "../api";
 export default function GenerateDiet() {
   const [done, setDone] = useState(false);
   const [period, setPeriod] = useState(7);
-  const [tags, setTags] = useState([]);
+  const tags = [];
   const [extraRequest, setExtraRequest] = useState("");
   const [model, setModel] = useState("apodex/apodex-1.1-mini:free");
   const [error, setError] = useState("");

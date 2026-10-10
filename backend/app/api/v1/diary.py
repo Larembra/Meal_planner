@@ -1,4 +1,5 @@
 from datetime import date, datetime, timezone
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -17,16 +18,16 @@ class DiaryEntry(BaseModel):
     meal_type: str
     meal_id: str
     calories: float
-    note: str | None = None
+    note: Optional[str] = None
     completed: bool
 
 
 class DiaryCreate(BaseModel):
     entry_date: date
     meal_type: str
-    meal_id: str | None = None
+    meal_id: Optional[str] = None
     calories: float = 0
-    note: str | None = None
+    note: Optional[str] = None
     completed: bool = False
 
 

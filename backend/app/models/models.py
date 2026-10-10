@@ -59,6 +59,7 @@ class Meal(Base):
     id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
+    instructions: Mapped[str] = mapped_column(Text, default="", server_default="", nullable=False)
     meal_type: Mapped[str] = mapped_column(String(30), nullable=False)
     cooking_time: Mapped[int] = mapped_column(Integer, nullable=False)
     servings: Mapped[int] = mapped_column(Integer, default=1, server_default="1", nullable=False)
@@ -69,7 +70,7 @@ class Meal(Base):
     diet_type: Mapped[str] = mapped_column(String(30), default="omnivore", server_default="omnivore", nullable=False)
     allergens: Mapped[list[str]] = mapped_column(TextArray, default=list, server_default="{}", nullable=False)
     tags: Mapped[list[str]] = mapped_column(TextArray, default=list, server_default="{}", nullable=False)
-    created_by: Mapped[Optional[str]] = uuid_column(ForeignKey("users.id", ondelete="SET NULL"))
+    created_by: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="SET NULL"))
     status: Mapped[str] = mapped_column(String(20), default="published", server_default="published", nullable=False)
     cost: Mapped[float] = mapped_column(Numeric(10, 2), default=0, server_default="0", nullable=False)
     goal: Mapped[str] = mapped_column(String(30), default="maintain", server_default="maintain", nullable=False)
@@ -152,7 +153,7 @@ class ShoppingList(Base):
     __tablename__ = "shopping_lists"
     id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
     user_id: Mapped[str] = uuid_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    ration_id: Mapped[Optional[str]] = uuid_column(ForeignKey("rations.id", ondelete="SET NULL"))
+    ration_id: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), ForeignKey("rations.id", ondelete="SET NULL"))
     status: Mapped[str] = mapped_column(String(20), default="active", server_default="active", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
@@ -164,6 +165,7 @@ class ShoppingItem(Base):
     shopping_list_id: Mapped[str] = uuid_column(ForeignKey("shopping_lists.id", ondelete="CASCADE"), nullable=False)
     product_id: Mapped[str] = uuid_column(ForeignKey("products.id", ondelete="RESTRICT"), nullable=False)
     quantity: Mapped[float] = mapped_column(Numeric(8, 2), nullable=False)
+    total_cost: Mapped[float] = mapped_column(Numeric(10, 2), default=0, server_default="0", nullable=False)
     is_purchased: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
 
 
@@ -171,7 +173,7 @@ class AIGeneration(Base):
     __tablename__ = "ai_generations"
     id: Mapped[str] = uuid_column(primary_key=True, server_default=func.gen_random_uuid())
     user_id: Mapped[str] = uuid_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    ration_id: Mapped[Optional[str]] = uuid_column(ForeignKey("rations.id", ondelete="SET NULL"))
+    ration_id: Mapped[Optional[str]] = mapped_column(UUID(as_uuid=False), ForeignKey("rations.id", ondelete="SET NULL"))
     prompt: Mapped[str] = mapped_column(Text, nullable=False)
     response: Mapped[Optional[str]] = mapped_column(Text)
     provider: Mapped[Optional[str]] = mapped_column(String(50))

@@ -1,5 +1,9 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.models import Meal, MealProduct, Product
@@ -13,7 +17,8 @@ async def meal_payload(db: AsyncSession, meal: Meal) -> dict:
     ingredients = [{"product_id": p.id, "name": p.name, "quantity": float(q), "unit": p.unit,
                     "price": float(p.cost), "category": p.category} for p, q in rows]
     category = {"breakfast": "Завтрак", "lunch": "Обед", "dinner": "Ужин", "snack": "Перекус"}.get(meal.meal_type, meal.meal_type)
-    return {"id": meal.id, "name": meal.name, "description": meal.description, "meal_type": meal.meal_type,
+    return {"id": meal.id, "name": meal.name, "description": meal.description,
+            "instructions": meal.instructions, "meal_type": meal.meal_type,
             "cooking_time": meal.cooking_time, "servings": meal.servings, "calories": float(meal.calories),
             "protein": float(meal.protein), "fat": float(meal.fat), "carbs": float(meal.carbs),
             "diet_type": meal.diet_type, "allergens": meal.allergens or [], "tags": meal.tags or [],
@@ -22,16 +27,23 @@ async def meal_payload(db: AsyncSession, meal: Meal) -> dict:
             "title": meal.name, "category": category, "time": meal.cooking_time,
             "proteins": float(meal.protein), "fats": float(meal.fat), "price": float(meal.cost),
             "image_url": None, "recipe": {"description": meal.description, "ingredients": ingredients,
-                                           "steps": [], "tag": ", ".join(meal.tags or []), "time": meal.cooking_time}}
+                                           "steps": [line for line in meal.instructions.splitlines() if line.strip()],
+                                           "tag": ", ".join(meal.tags or []), "time": meal.cooking_time}}
 
 
 @router.get("/dishes")
-async def dishes(meal_type: str | None = Query(None), db: AsyncSession = Depends(get_db)):
+async def dishes(meal_type: Optional[str] = Query(None), tag: Optional[str] = Query(None),
+                 page: int = Query(1, ge=1), page_size: int = Query(12, ge=1, le=50),
+                 db: AsyncSession = Depends(get_db)):
     query = select(Meal).where(Meal.status == "published")
     if meal_type:
         query = query.where(Meal.meal_type == meal_type)
-    rows = (await db.execute(query.order_by(Meal.name))).scalars().all()
-    return [await meal_payload(db, meal) for meal in rows]
+    if tag:
+        query = query.where(Meal.tags.contains([tag]))
+    total = await db.scalar(select(func.count()).select_from(query.subquery()))
+    rows = (await db.execute(query.order_by(Meal.created_at.desc()).offset((page - 1) * page_size).limit(page_size))).scalars().all()
+    return {"items": [await meal_payload(db, meal) for meal in rows], "page": page,
+            "page_size": page_size, "total": total or 0, "pages": ((total or 0) + page_size - 1) // page_size}
 
 
 @router.get("/dishes/{dish_id}")

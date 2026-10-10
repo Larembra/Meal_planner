@@ -41,7 +41,9 @@ export function Home() {
             планирование ИИ.
           </p>
           <div className="actions">
-            <Button href="/diet/generate">Создать рацион</Button>
+            <Button href={isLoggedIn ? "/diet/generate" : "/login"}>
+              {isLoggedIn ? "Создать рацион" : "Войти и создать рацион"}
+            </Button>
             {!isLoggedIn && <Button href="/login" variant="secondary">Войти в личный кабинет</Button>}
           </div>
         </div>
