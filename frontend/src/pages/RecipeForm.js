@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button, Card, ImageBox } from "../components/UI";
-import { recipes, sumIngredientPrices, ingredientCategories } from "../data/mockData";
-import { createRecipe } from "../api";
+import { sumIngredientPrices, ingredientCategories } from "../data/mockData";
+import { createRecipe, getRecipe, updateRecipe } from "../api";
 
 const emptyIngredient = () => ({
   name: "",
@@ -17,28 +17,38 @@ const defaultIngredients = [
 ];
 
 export default function RecipeForm({ mode }) {
-  const existing = recipes[0];
-  const [name, setName] = useState(mode === "edit" ? existing.title : "");
-  const [category, setCategory] = useState(mode === "edit" ? existing.category : "Ужин");
-  const [time, setTime] = useState(mode === "edit" ? existing.time : 0);
-  const [calories, setCalories] = useState(mode === "edit" ? existing.calories : 0);
-  const [protein, setProtein] = useState(mode === "edit" ? existing.protein : 0);
-  const [fat, setFat] = useState(mode === "edit" ? existing.fat : 0);
-  const [carbs, setCarbs] = useState(mode === "edit" ? existing.carbs : 0);
+  const recipeId = new URLSearchParams(window.location.search).get("id");
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("Ужин");
+  const [time, setTime] = useState(0);
+  const [calories, setCalories] = useState(0);
+  const [protein, setProtein] = useState(0);
+  const [fat, setFat] = useState(0);
+  const [carbs, setCarbs] = useState(0);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [steps, setSteps] = useState(
-    mode === "edit" ? existing.steps : ["", ""],
+    ["", ""],
   );
   const [ingredients, setIngredients] = useState(
-    mode === "edit"
-      ? existing.ingredients.map(item => ({
-          ...item,
-          category: item.category || ingredientCategories[2],
-        }))
-      : defaultIngredients.map(item => ({ ...item })),
+    defaultIngredients.map(item => ({ ...item })),
   );
-  const [image, setImage] = useState(mode === "edit" ? existing.image : "");
+  const [image, setImage] = useState("");
+  useEffect(() => {
+    if (mode !== "edit" || !recipeId) return;
+    getRecipe(recipeId).then(existing => {
+      setName(existing.title || "");
+      setCategory(existing.category || "Ужин");
+      setTime(existing.time || 0);
+      setCalories(existing.calories || 0);
+      setProtein(existing.protein || 0);
+      setFat(existing.fat || 0);
+      setCarbs(existing.carbs || 0);
+      setSteps(existing.steps?.length ? existing.steps : ["", ""]);
+      setIngredients((existing.ingredients || []).map(item => ({ ...item, category: item.category || ingredientCategories[2] })));
+      setImage(existing.image || "");
+    }).catch(err => setError(err.message));
+  }, [mode, recipeId]);
   const addStep = () => setSteps([...steps, ""]);
   const updateStep = (i, v) =>
     setSteps(steps.map((x, idx) => (idx === i ? v : x)));
@@ -60,7 +70,7 @@ export default function RecipeForm({ mode }) {
     setError("");
     setSaving(true);
     try {
-      await createRecipe({
+      const payload = {
         name,
         category,
         time: Number(time) || 0,
@@ -72,7 +82,9 @@ export default function RecipeForm({ mode }) {
         image,
         ingredients,
         steps,
-      });
+      };
+      if (mode === "edit" && recipeId) await updateRecipe(recipeId, payload);
+      else await createRecipe(payload);
       window.location.href = "/recipes";
     } catch (err) {
       setError(err.message);

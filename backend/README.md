@@ -2,6 +2,84 @@
 
 Бэкенд — FastAPI с PostgreSQL и pgvector. Готовая схема и данные находятся в `data/seed.sql`; база создаётся скриптом `data/create_database.py`. API не создаёт таблицы при старте. Для генерации рациона нужен ключ OpenRouter в `backend/.env`.
 
+## Рекомендуемый запуск на macOS (Docker только для PostgreSQL)
+
+Используйте этот вариант для текущей версии проекта. Не запускайте одновременно
+`docker compose up api` и локальный Uvicorn: оба процесса используют порт `8000`.
+
+### 1. Запустить PostgreSQL
+
+Из корня проекта:
+
+```bash
+cd /Users/artem/PycharmProjects/Meal_planner/backend
+docker compose up -d db
+docker compose ps
+```
+
+Контейнер `backend-db-1` должен иметь статус `Up` или `healthy`.
+
+### 2. Применить миграции
+
+```bash
+DATABASE_URL='postgresql+asyncpg://postgres:postgres@127.0.0.1:55432/Meal_planner' \
+.venv/bin/alembic upgrade head
+```
+
+### 3. Запустить backend
+
+Оставьте этот терминал открытым:
+
+```bash
+DATABASE_URL='postgresql+asyncpg://postgres:postgres@127.0.0.1:55432/Meal_planner' \
+.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Проверка во втором терминале:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Ожидаемый ответ: `{"status":"ok"}`.
+
+### 4. Запустить frontend
+
+В третьем терминале:
+
+```bash
+cd /Users/artem/PycharmProjects/Meal_planner/frontend
+npm start
+```
+
+Откройте `http://localhost:3000`. Backend Swagger доступен по адресу
+`http://127.0.0.1:8000/docs`.
+
+Если появляется `Failed to fetch`, сначала проверьте `/health`, затем убедитесь,
+что frontend и backend запущены одновременно. Для CORS разрешены `localhost` и
+`127.0.0.1` на портах `3000` и `5173`.
+
+Если порт занят, найдите конкретный процесс и остановите его:
+
+```bash
+lsof -nP -iTCP:8000 -sTCP:LISTEN
+kill <PID>
+```
+
+Не используйте `kill` без PID и не запускайте второй backend поверх работающего.
+
+### 5. Если браузер показывает старую версию
+
+В DevTools откройте Console и выполните:
+
+```js
+localStorage.clear()
+location.href = "/"
+```
+
+Без токена гостю доступна только главная страница, а переходы на защищённые
+страницы перенаправляют на `/login`.
+
 ## macOS: запуск через Docker Desktop
 
 Это рекомендуемый способ для macOS: PostgreSQL и pgvector запускаются в контейнере, поэтому устанавливать их отдельно через Homebrew не нужно.

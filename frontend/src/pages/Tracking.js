@@ -1,7 +1,24 @@
-import React from "react";
-import { Card, ProgressRing } from "../components/UI";
+import React, { useEffect, useMemo, useState } from "react";
+import { Card } from "../components/UI";
+import { deleteDiaryEntry, getDiary } from "../api";
 
 export default function Tracking() {
+  const [entries, setEntries] = useState([]);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    getDiary().then(setEntries).catch(err => setError(err.message));
+  }, []);
+  const completed = entries.filter(entry => entry.completed);
+  const calories = useMemo(() => completed.reduce((sum, entry) => sum + Number(entry.calories || 0), 0), [completed]);
+  const days = new Set(completed.map(entry => entry.entry_date)).size;
+  const remove = async id => {
+    try {
+      await deleteDiaryEntry(id);
+      setEntries(previous => previous.filter(entry => entry.id !== id));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
   return (
     <div className="container">
       <div className="page-title">
@@ -11,45 +28,27 @@ export default function Tracking() {
             Следите за прогрессом соблюдения планов КБЖУ в автоматическом режиме
           </p>
         </div>
-        <span className="streak">🔥 12 дней строго по плану!</span>
+        <span className="streak">🔥 Выполнено приёмов: {completed.length}</span>
       </div>
       <div className="tracking-grid">
         <Card>
-          <h3>Потребление на сегодня (Пятница)</h3>
-          <div className="rings large">
-            <ProgressRing
-              value={78}
-              label="Калории"
-              unit="1420 ккал / 1800 ккал"
-            />
-            <ProgressRing value={76} label="Белки" unit="92г / 120г" />
-            <ProgressRing value={73} label="Жиры" unit="48г / 65г" />
-            <ProgressRing value={86} label="Углеводы" unit="155г / 180г" />
-          </div>
+          <h3>Ваш прогресс</h3>
+          <p>Отмечено дней: <strong>{days}</strong></p>
+          <p>Съедено калорий: <strong>{calories.toLocaleString("ru-RU")} ккал</strong></p>
         </Card>
         <Card>
-          <h3>Соблюдение КБЖУ за неделю</h3>
-          <div className="chart-bars">
-            {[72, 82, 68, 88, 78, 56, 42].map((v, i) => (
-              <div key={i}>
-                <span style={{ height: `${v}%` }}></span>
-                <small>{["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"][i]}</small>
-              </div>
-            ))}
-          </div>
+          <h3>Записей в дневнике</h3>
+          <p><strong>{entries.length}</strong> приёмов пищи из вашего рациона</p>
         </Card>
         <Card className="full">
           <h3>Выполненные приемы пищи</h3>
-          {[
-            ["Завтрак: Сырники из творога с ягодами", "09:00"],
-            ["Обед: Борщ со сметаной и ржаным хлебом", "14:15"],
-            ["Перекус: Йогурт греческий с миндалем", "17:00"],
-            ["Ужин: Форель на гриле с брокколи", "20:00"],
-          ].map(([x, t]) => (
-            <div className="log-row" key={x}>
-              <span>✓</span>
-              <div>{x}</div>
-              <time>{t}</time>
+          {error && <p role="alert">{error}</p>}
+          {!entries.length && <p>Записей пока нет. Отметьте приём пищи в разделе «Мой рацион».</p>}
+          {entries.map(entry => (
+            <div className="log-row" key={entry.id}>
+              <span>{entry.completed ? "✓" : "○"}</span>
+              <div>{entry.meal_type} · {entry.entry_date} · {entry.calories} ккал</div>
+              <button type="button" className="tracking-remove" onClick={() => remove(entry.id)}>Удалить запись</button>
             </div>
           ))}
         </Card>

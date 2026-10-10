@@ -101,6 +101,19 @@ button {
   align-items: center;
   gap: 14px;
   white-space: nowrap;
+  font-weight: 700;
+}
+.header-user > a {
+  color: var(--green);
+  border: 1px solid #b9e9dc;
+  border-radius: 12px;
+  padding: 10px 17px;
+  background: #f0fbf8;
+  transition: .2s ease;
+}
+.header-user > a:hover {
+  color: #fff;
+  background: var(--green);
 }
 .avatar {
   width: 38px;
@@ -111,6 +124,9 @@ button {
   place-items: center;
   color: white;
   font-weight: 800;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(20, 32, 51, .14);
 }
 .header-user details {
   position: relative;
@@ -137,6 +153,48 @@ button {
 .header-user details > button:hover {
   background: #e45f59;
   color: #fff;
+}
+.shopping-remove {
+  border: 1px solid #f1c5c2;
+  border-radius: 8px;
+  padding: 6px 9px;
+  background: #fff5f4;
+  color: var(--danger);
+  font-weight: 700;
+}
+.shopping-remove:hover {
+  background: var(--danger);
+  color: #fff;
+}
+.tracking-remove {
+  margin-left: auto;
+  border: 1px solid #f1c5c2;
+  border-radius: 9px;
+  padding: 7px 11px;
+  background: #fff5f4;
+  color: var(--danger);
+  font-weight: 700;
+}
+.tracking-remove:hover {
+  background: var(--danger);
+  color: #fff;
+}
+.meal-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+.meal-action .button {
+  border-color: #b9e9dc;
+  color: var(--dark);
+  background: #f0fbf8;
+  font-weight: 800;
+}
+.meal-action .button:disabled {
+  opacity: 1;
+  color: #fff;
+  background: var(--green);
+  cursor: default;
 }
 .container {
   max-width: 1140px;

@@ -36,7 +36,7 @@ export default function Layout({ children }) {
           <strong>Витя, где ням-ням?</strong>
           <span>AI РАЦИОН</span>
         </a>
-        <nav>
+        {user && <nav>
           {nav.map(([href, label]) => (
             <a
               key={href}
@@ -51,13 +51,15 @@ export default function Layout({ children }) {
               {label}
             </a>
           ))}
-        </nav>
+        </nav>}
         <div className="header-user">
-          <span>Привет, {name}!</span>
-          <details>
-            <summary className="avatar" title="Меню аккаунта">{name.charAt(0).toUpperCase()}</summary>
-            <button type="button" onClick={logout}>Выйти из аккаунта</button>
-          </details>
+          {user ? <>
+            <span>Привет, {name}!</span>
+            <details>
+              <summary className="avatar" title="Меню аккаунта">{name.charAt(0).toUpperCase()}</summary>
+              <button type="button" onClick={logout}>Выйти из аккаунта</button>
+            </details>
+          </> : <a href="/login">Войти</a>}
         </div>
       </header>
       <main>{children}</main>

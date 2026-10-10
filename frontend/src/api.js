@@ -17,9 +17,10 @@ async function request(path, options = {}) {
 
   const response = await fetch(`${API_URL}${path}`, { ...options, headers })
   const contentType = response.headers.get('content-type') || ''
-  const body = contentType.includes('application/json')
-    ? await response.json()
-    : await response.text()
+  const rawBody = await response.text()
+  const body = contentType.includes('application/json') && rawBody.trim()
+    ? JSON.parse(rawBody)
+    : rawBody
 
   if (!response.ok) {
     const message = typeof body === 'object' && body?.detail
@@ -27,7 +28,7 @@ async function request(path, options = {}) {
       : `Ошибка API (${response.status})`
     throw new Error(message)
   }
-  return body
+  return response.status === 204 ? null : body
 }
 
 export async function login(email, password) {
@@ -42,6 +43,10 @@ export async function login(email, password) {
   return user
 }
 
+export async function getCurrentUser() {
+  return request('/auth/me')
+}
+
 export async function register(data) {
   await request('/auth/register', { method: 'POST', body: JSON.stringify(data) })
   return login(data.email, data.password)
@@ -49,7 +54,8 @@ export async function register(data) {
 
 export async function getRecipes() {
   const dishes = await request('/dishes')
-  return dishes.map(dish => ({
+  const items = Array.isArray(dishes) ? dishes : dishes.items
+  return items.map(dish => ({
     id: dish.id,
     title: dish.name,
     category: dish.meal_type,
@@ -64,11 +70,12 @@ export async function getRecipes() {
     description: dish.recipe?.description || '',
     ingredients: dish.recipe?.ingredients || [],
     steps: dish.recipe?.steps || [],
+    tags: dish.tags || [],
   }))
 }
 
 export async function getRecipe(id) {
-  const dish = await request(`/recipes/${encodeURIComponent(id)}`)
+  const dish = await request(`/dishes/${encodeURIComponent(id)}`)
   return {
     id: dish.id,
     title: dish.name,
@@ -82,8 +89,10 @@ export async function getRecipe(id) {
     carbs: dish.carbs,
     image: dish.image_url,
     description: dish.description,
+    instructions: dish.instructions || '',
     ingredients: dish.ingredients || [],
     steps: dish.recipe?.steps || [],
+    tags: dish.tags || [],
   }
 }
 
@@ -95,6 +104,54 @@ export async function createRecipe(data) {
       ingredients: data.ingredients || [],
       steps: data.steps || [],
     }),
+  })
+}
+
+export async function updateRecipe(id, data) {
+  return request(`/moderator/recipes/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function deleteRecipe(id) {
+  return request(`/moderator/recipes/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
+export async function getShoppingItems() {
+  return request('/shopping')
+}
+
+export async function addShoppingItem(data) {
+  return request('/shopping/items', { method: 'POST', body: JSON.stringify(data) })
+}
+
+export async function updateShoppingItem(id, data) {
+  return request(`/shopping/items/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(data) })
+}
+
+export async function deleteShoppingItem(id) {
+  return request(`/shopping/items/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
+export async function deleteAllShoppingItems() {
+  return request('/shopping', { method: 'DELETE' })
+}
+
+export async function addIngredientsToShopping(ingredients) {
+  return Promise.all(ingredients.map(item => addShoppingItem({
+    name: item.name,
+    quantity: Number(item.quantity) || 1,
+    unit: item.unit || 'шт.',
+    price: Number(item.price) || 0,
+    category: item.category || 'other',
+  })))
+}
+
+export async function addMealToRation(rationId, data) {
+  return request(`/rations/${encodeURIComponent(rationId)}/meals`, {
+    method: 'POST',
+    body: JSON.stringify(data),
   })
 }
 
@@ -132,4 +189,8 @@ export async function getDiary() {
 
 export async function addDiaryEntry(data) {
   return request('/diary', { method: 'POST', body: JSON.stringify(data) })
+}
+
+export async function deleteDiaryEntry(id) {
+  return request(`/diary/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }

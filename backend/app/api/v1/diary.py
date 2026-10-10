@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from datetime import date, datetime, timezone
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -16,17 +19,19 @@ class DiaryEntry(BaseModel):
     entry_date: date
     meal_type: str
     meal_id: str
+    ration_meal_id: str
     calories: float
-    note: str | None = None
+    note: Optional[str] = None
     completed: bool
 
 
 class DiaryCreate(BaseModel):
     entry_date: date
     meal_type: str
-    meal_id: str | None = None
+    meal_id: Optional[str] = None
+    ration_meal_id: Optional[str] = None
     calories: float = 0
-    note: str | None = None
+    note: Optional[str] = None
     completed: bool = False
 
 
@@ -38,7 +43,8 @@ async def rows_for_user(db: AsyncSession, user: User):
 
 def as_entry(user: User, tracking: Tracking, ration_meal: RationMeal, meal: Meal):
     return DiaryEntry(id=tracking.id, user_id=user.id, entry_date=ration_meal.date, meal_type=ration_meal.meal_type,
-                      meal_id=meal.id, calories=float(meal.calories), completed=tracking.status == "eaten",
+                      meal_id=meal.id, ration_meal_id=ration_meal.id, calories=float(meal.calories),
+                      completed=tracking.status == "eaten",
                       note=tracking.status if tracking.status != "planned" else None)
 
 
@@ -49,11 +55,15 @@ async def list_diary(db: AsyncSession = Depends(get_db), user: User = Depends(cu
 
 @router.post("", response_model=DiaryEntry, status_code=201)
 async def create_diary(data: DiaryCreate, db: AsyncSession = Depends(get_db), user: User = Depends(current_user)):
-    query = select(RationMeal).join(Ration, Ration.id == RationMeal.ration_id).where(
-        Ration.user_id == user.id, RationMeal.date == data.entry_date, RationMeal.meal_type == data.meal_type)
-    if data.meal_id:
-        query = query.where(RationMeal.meal_id == data.meal_id)
-    ration_meal = (await db.execute(query)).scalar_one_or_none()
+    if data.ration_meal_id:
+        query = select(RationMeal).join(Ration, Ration.id == RationMeal.ration_id).where(
+            RationMeal.id == data.ration_meal_id, Ration.user_id == user.id)
+    else:
+        query = select(RationMeal).join(Ration, Ration.id == RationMeal.ration_id).where(
+            Ration.user_id == user.id, RationMeal.date == data.entry_date, RationMeal.meal_type == data.meal_type)
+        if data.meal_id:
+            query = query.where(RationMeal.meal_id == data.meal_id)
+    ration_meal = (await db.execute(query)).scalars().first()
     if ration_meal is None:
         raise HTTPException(404, "Приём пищи не найден в рационе на эту дату")
     tracking = (await db.execute(select(Tracking).where(Tracking.user_id == user.id,

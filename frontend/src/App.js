@@ -16,6 +16,11 @@ function Router() {
   const path = window.location.pathname
   if (path === '/register') return <Register />
   if (path === '/login') return <Login />
+  const accessToken = localStorage.getItem('meal_planner_access_token')
+  if (!accessToken && path !== '/') {
+    window.location.replace('/login')
+    return null
+  }
   let page
   if (path === '/') page = <Home />
   else if (path === '/profile') page = <Profile />

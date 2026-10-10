@@ -25,7 +25,9 @@ class TextArray(TypeDecorator):
 
 
 def uuid_column(*args, **kwargs):
-    return mapped_column(UUID(as_uuid=False), *args, default=lambda: str(uuid4()), **kwargs)
+    if kwargs.get("primary_key"):
+        kwargs.setdefault("default", lambda: str(uuid4()))
+    return mapped_column(UUID(as_uuid=False), *args, **kwargs)
 
 
 class User(Base):
@@ -72,6 +74,7 @@ class Meal(Base):
     created_by: Mapped[Optional[str]] = uuid_column(ForeignKey("users.id", ondelete="SET NULL"))
     status: Mapped[str] = mapped_column(String(20), default="published", server_default="published", nullable=False)
     cost: Mapped[float] = mapped_column(Numeric(10, 2), default=0, server_default="0", nullable=False)
+    image_url: Mapped[Optional[str]] = mapped_column(Text)
     goal: Mapped[str] = mapped_column(String(30), default="maintain", server_default="maintain", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
@@ -164,6 +167,7 @@ class ShoppingItem(Base):
     shopping_list_id: Mapped[str] = uuid_column(ForeignKey("shopping_lists.id", ondelete="CASCADE"), nullable=False)
     product_id: Mapped[str] = uuid_column(ForeignKey("products.id", ondelete="RESTRICT"), nullable=False)
     quantity: Mapped[float] = mapped_column(Numeric(8, 2), nullable=False)
+    total_cost: Mapped[float] = mapped_column(Numeric(10, 2), default=0, server_default="0", nullable=False)
     is_purchased: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
 
 

@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from datetime import timedelta
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,7 +15,7 @@ from app.schemas.schemas import LoginRequest, RefreshRequest, TokenResponse, Use
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def read_user(user: User, profile: Profile | None = None) -> UserRead:
+def read_user(user: User, profile: Optional[Profile] = None) -> UserRead:
     preferences = {}
     if profile:
         preferences = {"diet": profile.diet_type, "meals_per_day": profile.meals_per_day,

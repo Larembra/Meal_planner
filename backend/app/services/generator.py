@@ -95,7 +95,10 @@ def _restriction_patterns(restrictions: str | None) -> list[str]:
 async def _profile(db: AsyncSession, user: User) -> Profile:
     value = (await db.execute(text("SELECT * FROM profiles WHERE user_id = :user_id"), {"user_id": user.id})).mappings().first()
     if value is None:
-        raise HTTPException(409, "Профиль питания не найден. Сохраните профиль и повторите запрос.")
+        profile = Profile(user_id=user.id)
+        db.add(profile)
+        await db.flush()
+        return profile
     # Keep the database mapping as a light object; no ORM schema changes are needed.
     return Profile(**dict(value))
 

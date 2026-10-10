@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +14,7 @@ router = APIRouter(prefix="/recipes", tags=["recipes"])
 
 
 @router.get("")
-async def list_recipes(category: str | None = Query(None), tag: str | None = Query(None),
+async def list_recipes(category: Optional[str] = Query(None), tag: Optional[str] = Query(None),
                        db: AsyncSession = Depends(get_db), _: User = Depends(current_user)):
     query = select(Meal).where(Meal.status == "published")
     if category:

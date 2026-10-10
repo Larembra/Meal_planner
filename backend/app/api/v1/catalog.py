@@ -1,10 +1,20 @@
+from __future__ import annotations
+
 from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.models import Meal, MealProduct, Product
 
 router = APIRouter(tags=["catalog"])
+
+DEFAULT_IMAGES = {
+    "breakfast": "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85",
+    "lunch": "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85",
+    "dinner": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=85",
+    "snack": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=85",
+}
 
 
 async def meal_payload(db: AsyncSession, meal: Meal) -> dict:
@@ -21,12 +31,13 @@ async def meal_payload(db: AsyncSession, meal: Meal) -> dict:
             # Compatibility aliases for the existing React client.
             "title": meal.name, "category": category, "time": meal.cooking_time,
             "proteins": float(meal.protein), "fats": float(meal.fat), "price": float(meal.cost),
-            "image_url": None, "recipe": {"description": meal.description, "ingredients": ingredients,
+            "image_url": meal.image_url or DEFAULT_IMAGES.get(meal.meal_type, DEFAULT_IMAGES["lunch"]),
+            "recipe": {"description": meal.description, "ingredients": ingredients,
                                            "steps": [], "tag": ", ".join(meal.tags or []), "time": meal.cooking_time}}
 
 
 @router.get("/dishes")
-async def dishes(meal_type: str | None = Query(None), db: AsyncSession = Depends(get_db)):
+async def dishes(meal_type: Optional[str] = Query(None), db: AsyncSession = Depends(get_db)):
     query = select(Meal).where(Meal.status == "published")
     if meal_type:
         query = query.where(Meal.meal_type == meal_type)

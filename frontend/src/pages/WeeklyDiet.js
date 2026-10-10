@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Button, Card, ImageBox } from '../components/UI'
-import { getRationPlan, getRations } from '../api'
+import { addDiaryEntry, getDiary, getRationPlan, getRations } from '../api'
 
 const slotLabels = {
   breakfast: 'Завтрак', second_breakfast: '2-й завтрак', lunch: 'Обед', snack: 'Полдник', dinner: 'Ужин',
@@ -61,6 +61,27 @@ export default function WeeklyDiet() {
     return [...grouped.entries()].sort(([a], [b]) => a.localeCompare(b))
   }, [plan])
   const meals = days.find(([day]) => day === selectedDate)?.[1] || []
+  const [marked, setMarked] = useState([])
+  useEffect(() => {
+    getDiary().then(entries => {
+      setMarked(entries.filter(entry => entry.completed).map(entry => entry.ration_meal_id))
+    }).catch(() => {})
+  }, [])
+  const markEaten = async meal => {
+    try {
+      await addDiaryEntry({
+        entry_date: meal.date,
+        meal_type: meal.meal_type,
+        meal_id: meal.id,
+        ration_meal_id: meal.ration_meal_id,
+        calories: meal.calories,
+        completed: true,
+      })
+      setMarked(previous => [...new Set([...previous, meal.ration_meal_id])])
+    } catch (err) {
+      setError(err.message)
+    }
+  }
 
   const openRecipe = id => { window.location.href = `/recipes/${id}` }
   const handleCardKeyDown = (event, id) => {
@@ -118,6 +139,15 @@ export default function WeeklyDiet() {
                     <p>{meal.description}</p>
                     <strong>{meal.calories} ккал | Б {meal.protein} г · Ж {meal.fat} г · У {meal.carbs} г</strong>
                     <div className="meal-price">{meal.cost} ₽ · {meal.servings} порц.</div>
+                    <div className="meal-action">
+                      <Button
+                        variant="secondary"
+                        onClick={event => { event.stopPropagation(); markEaten(meal) }}
+                        disabled={marked.includes(meal.ration_meal_id)}
+                      >
+                        {marked.includes(meal.ration_meal_id) ? "✓ Съедено" : "Отметить съеденным"}
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))}

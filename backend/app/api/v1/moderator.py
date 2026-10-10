@@ -30,7 +30,7 @@ async def create_recipe(data: RecipeCreate, db: AsyncSession = Depends(get_db), 
     meal = Meal(created_by=user.id, name=data.name, description="\n".join(data.steps) or data.name,
                 meal_type=category, cooking_time=max(0, data.time), servings=1,
                 calories=data.calories, protein=data.protein, fat=data.fat, carbs=data.carbs,
-                cost=data.price, status="published", allergens=[], tags=[])
+                cost=data.price, image_url=data.image, status="published", allergens=[], tags=[])
     db.add(meal)
     await db.flush()
     for ingredient in data.ingredients:
@@ -68,6 +68,7 @@ async def update_recipe(recipe_id: str, data: RecipeCreate, db: AsyncSession = D
     meal.description = "\n".join(data.steps) or data.name
     meal.cooking_time, meal.calories = max(0, data.time), data.calories
     meal.protein, meal.fat, meal.carbs, meal.cost = data.protein, data.fat, data.carbs, data.price
+    meal.image_url = data.image
     await db.commit()
     return await meal_payload(db, meal)
 

@@ -1,15 +1,32 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Button, Card, ImageBox } from '../components/UI'
 import { mealRecipes, recipes, sumIngredientPrices, ingredientText } from '../data/mockData'
-import { getRecipe } from '../api'
+import { addIngredientsToShopping, addMealToRation, getRations, getRecipe } from '../api'
 
 export default function RecipeDetail() {
   const id = window.location.pathname.split('/').pop()
   const fallback = useMemo(() => [...recipes, ...mealRecipes].find(r => String(r.id) === id) || recipes[0], [id])
   const [recipe, setRecipe] = useState(fallback)
+  const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
   useEffect(() => {
     getRecipe(id).then(setRecipe).catch(() => setRecipe(fallback))
   }, [id, fallback])
+  const addShopping = async () => {
+    try {
+      await addIngredientsToShopping(recipe.ingredients || [])
+      setMessage("Ингредиенты добавлены в список покупок")
+    } catch (err) { setError(err.message) }
+  }
+  const addToRation = async () => {
+    try {
+      const rations = await getRations()
+      if (!rations.length) throw new Error("Сначала создайте рацион")
+      const today = new Date().toISOString().slice(0, 10)
+      await addMealToRation(rations[0].id, { meal_id: recipe.id, date: today, meal_type: recipe.category || "dinner", servings: 1 })
+      setMessage("Блюдо добавлено в рацион")
+    } catch (err) { setError(err.message) }
+  }
 
   return (
     <div className="container recipe-detail">
@@ -83,12 +100,14 @@ export default function RecipeDetail() {
           </Card>
 
           <div className="actions">
-            <Button>Добавить в рацион питания</Button>
+            <Button onClick={addToRation}>Добавить в рацион питания</Button>
 
-            <Button variant="secondary">
+            <Button variant="secondary" onClick={addShopping}>
               🛒 Добавить ингредиенты в покупки
             </Button>
           </div>
+          {message && <p className="success">{message}</p>}
+          {error && <p role="alert">{error}</p>}
 
           <Card>
             <h3>Пошаговое приготовление</h3>

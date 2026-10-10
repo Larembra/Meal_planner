@@ -5,12 +5,11 @@ import { generateRation } from "../api";
 export default function GenerateDiet() {
   const [done, setDone] = useState(false);
   const [period, setPeriod] = useState(7);
-  const [tags, setTags] = useState([]);
   const [extraRequest, setExtraRequest] = useState("");
   const [model, setModel] = useState("apodex/apodex-1.1-mini:free");
   const [error, setError] = useState("");
   const generate = async () => {
-    try { await generateRation(period, tags, extraRequest, model); setDone(true); }
+    try { await generateRation(period, [], extraRequest, model); setDone(true); }
     catch (err) { setError(err.message); }
   };
   return (
