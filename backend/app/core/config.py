@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/Meal_planner"
     secret_key: str = "development-secret-change-me"
     openrouter_api_key: Optional[str] = None
-    openrouter_model: str = "apodex/apodex-1.1-mini:free"
+    openrouter_model: str = "nvidia/nemotron-3.5-lightning:free"
     embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     openrouter_timeout_seconds: int = 120
     access_token_expire_minutes: int = 30

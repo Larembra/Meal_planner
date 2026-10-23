@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, catalog, diary, moderator, rations, recipes, shopping, users
+from app.api.v1 import ai, auth, catalog, diary, moderator, rations, recipes, shopping, users
 
 api_router = APIRouter()
 api_router.include_router(auth.router)
@@ -11,3 +11,5 @@ api_router.include_router(catalog.router)
 api_router.include_router(diary.router)
 api_router.include_router(moderator.router)
 api_router.include_router(shopping.router)
+api_router.include_router(ai.router)
+

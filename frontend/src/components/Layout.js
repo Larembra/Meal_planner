@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { clearSession, getProfile } from "../api";
+import ConsultationBar from "./ConsultationBar";
+
 
 const nav = [
   ["/", "Главная"],
@@ -62,6 +64,7 @@ export default function Layout({ children }) {
           </> : <a href="/login">Войти</a>}
         </div>
       </header>
+      <ConsultationBar />
       <main>{children}</main>
     </div>
   );

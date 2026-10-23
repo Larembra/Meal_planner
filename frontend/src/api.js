@@ -16,6 +16,40 @@ async function request(path, options = {}) {
   if (token) headers.Authorization = `Bearer ${token}`
 
   const response = await fetch(`${API_URL}${path}`, { ...options, headers })
+
+  // If 401 Unauthorized, try refreshing the token once before failing
+  if (response.status === 401 && path !== '/auth/login' && path !== '/auth/refresh') {
+    const refreshToken = localStorage.getItem('meal_planner_refresh_token')
+    if (refreshToken) {
+      try {
+        const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: refreshToken }),
+        })
+        if (refreshRes.ok) {
+          const newTokens = await refreshRes.json()
+          localStorage.setItem('meal_planner_access_token', newTokens.access_token)
+          localStorage.setItem('meal_planner_refresh_token', newTokens.refresh_token)
+          headers.Authorization = `Bearer ${newTokens.access_token}`
+          const retryResponse = await fetch(`${API_URL}${path}`, { ...options, headers })
+          if (retryResponse.ok) {
+            const retryText = await retryResponse.text()
+            return retryText.trim() ? JSON.parse(retryText) : null
+          }
+        }
+      } catch (err) {
+        // silent refresh error
+      }
+    }
+
+    // Refresh failed or invalid session: clear stale tokens and redirect to login
+    clearSession()
+    if (typeof window !== 'undefined' && window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+      window.location.replace('/login')
+    }
+  }
+
   const contentType = response.headers.get('content-type') || ''
   const rawBody = await response.text()
   const body = contentType.includes('application/json') && rawBody.trim()
@@ -194,3 +228,84 @@ export async function addDiaryEntry(data) {
 export async function deleteDiaryEntry(id) {
   return request(`/diary/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
+
+export async function estimateDishPrice({ dish_name, category, ingredients }) {
+  return request('/ai/estimate-price', {
+    method: 'POST',
+    body: JSON.stringify({
+      dish_name,
+      category,
+      ingredients: ingredients || [],
+    }),
+  })
+}
+
+export async function suggestDishImage({ dish_name, category }) {
+  return request('/ai/suggest-image', {
+    method: 'POST',
+    body: JSON.stringify({
+      dish_name,
+      category,
+    }),
+  })
+}
+
+export async function consultAssistant(query) {
+  return request('/ai/consult', {
+    method: 'POST',
+    body: JSON.stringify({ query }),
+  })
+}
+
+export async function estimateIngredientsPrice({ dish_name, ingredients }) {
+  return request('/ai/estimate-ingredients-price', {
+    method: 'POST',
+    body: JSON.stringify({
+      dish_name,
+      ingredients: ingredients || [],
+    }),
+  })
+}
+
+export async function estimateNutrition({ dish_name, ingredients }) {
+  return request('/ai/estimate-nutrition', {
+    method: 'POST',
+    body: JSON.stringify({
+      dish_name,
+      ingredients: ingredients || [],
+    }),
+  })
+}
+
+export async function generateCookingSteps({ dish_name, ingredients }) {
+  return request('/ai/generate-cooking-steps', {
+    method: 'POST',
+    body: JSON.stringify({
+      dish_name,
+      ingredients: ingredients || [],
+    }),
+  })
+}
+
+export async function estimateCookingTime({ dish_name, steps, ingredients }) {
+  return request('/ai/estimate-cooking-time', {
+    method: 'POST',
+    body: JSON.stringify({
+      dish_name,
+      steps: steps || [],
+      ingredients: ingredients || [],
+    }),
+  })
+}
+
+export async function generateFullRecipe({ dish_name, category }) {
+  return request('/ai/generate-full-recipe', {
+    method: 'POST',
+    body: JSON.stringify({
+      dish_name,
+      category,
+    }),
+  })
+}
+
+

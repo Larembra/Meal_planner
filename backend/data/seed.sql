@@ -690,13 +690,13 @@ INSERT INTO "public"."profiles" ("id", "user_id", "goal", "budget", "diet_type",
 
 INSERT INTO "public"."rations" ("id", "user_id", "date_from", "date_to", "calories_target", "status", "created_at") VALUES ('f09efe88-dd1a-4e8a-9e96-19632cbec8ab', '0d3ef8c9-4b8b-4fb8-ac63-629a0f3f9c40', '2026-09-15'::date, '2026-09-21'::date, 1800, 'active', '2026-09-15T17:42:06.418307+00:00'::timestamptz);
 
-INSERT INTO "public"."users" ("id", "email", "password_hash", "name", "role", "created_at", "updated_at") VALUES ('fc0bb031-4d4a-49da-b47a-470d152df965', 'admin@mealplanner.local', '$2a$10$testhashadmin', 'Admin', 'admin', '2026-09-15T17:38:13.844689+00:00'::timestamptz, '2026-09-15T17:38:13.844689+00:00'::timestamptz);
+INSERT INTO "public"."users" ("id", "email", "password_hash", "name", "role", "created_at", "updated_at") VALUES ('fc0bb031-4d4a-49da-b47a-470d152df965', 'admin@mealplanner.com', '$2b$12$vj5.7Dxq1A7FXgQTJxm4JewrjRYhoQlm41R1wtnZ0SBuFZzALWVPO', 'Admin', 'admin', '2026-09-15T17:38:13.844689+00:00'::timestamptz, '2026-09-15T17:38:13.844689+00:00'::timestamptz);
 
-INSERT INTO "public"."users" ("id", "email", "password_hash", "name", "role", "created_at", "updated_at") VALUES ('0d3ef8c9-4b8b-4fb8-ac63-629a0f3f9c40', 'ivan@example.com', '$2a$10$testhashivan', 'Иван', 'user', '2026-09-15T17:38:13.844689+00:00'::timestamptz, '2026-09-15T17:38:13.844689+00:00'::timestamptz);
+INSERT INTO "public"."users" ("id", "email", "password_hash", "name", "role", "created_at", "updated_at") VALUES ('0d3ef8c9-4b8b-4fb8-ac63-629a0f3f9c40', 'ivan@example.com', '$2b$12$ArsGwwYHOdEzHCpJAybYn.mE0miRSMVYWU1nw6VTHkqK6MNZtP0bO', 'Иван', 'user', '2026-09-15T17:38:13.844689+00:00'::timestamptz, '2026-09-15T17:38:13.844689+00:00'::timestamptz);
 
-INSERT INTO "public"."users" ("id", "email", "password_hash", "name", "role", "created_at", "updated_at") VALUES ('1c5fdfb2-0ddd-46bd-aa48-d15b27c1288f', 'anna@example.com', '$2a$10$testhashanna', 'Анна', 'user', '2026-09-15T17:38:13.844689+00:00'::timestamptz, '2026-09-15T17:38:13.844689+00:00'::timestamptz);
+INSERT INTO "public"."users" ("id", "email", "password_hash", "name", "role", "created_at", "updated_at") VALUES ('1c5fdfb2-0ddd-46bd-aa48-d15b27c1288f', 'anna@example.com', '$2b$12$ArsGwwYHOdEzHCpJAybYn.mE0miRSMVYWU1nw6VTHkqK6MNZtP0bO', 'Анна', 'user', '2026-09-15T17:38:13.844689+00:00'::timestamptz, '2026-09-15T17:38:13.844689+00:00'::timestamptz);
 
-INSERT INTO "public"."users" ("id", "email", "password_hash", "name", "role", "created_at", "updated_at") VALUES ('7785d880-1baf-4233-824d-460f2c25f8ba', 'petr@example.com', '$2a$10$testhashpetr', 'Пётр', 'user', '2026-09-15T17:38:13.844689+00:00'::timestamptz, '2026-09-15T17:38:13.844689+00:00'::timestamptz);
+INSERT INTO "public"."users" ("id", "email", "password_hash", "name", "role", "created_at", "updated_at") VALUES ('7785d880-1baf-4233-824d-460f2c25f8ba', 'petr@example.com', '$2b$12$ArsGwwYHOdEzHCpJAybYn.mE0miRSMVYWU1nw6VTHkqK6MNZtP0bO', 'Пётр', 'user', '2026-09-15T17:38:13.844689+00:00'::timestamptz, '2026-09-15T17:38:13.844689+00:00'::timestamptz);
 
 
 

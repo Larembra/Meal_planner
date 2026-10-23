@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
@@ -25,6 +26,27 @@ async def current_user(
     if user is None:
         raise HTTPException(status_code=401, detail="Пользователь не найден")
     return user
+
+
+bearer_optional = HTTPBearer(auto_error=False)
+
+
+async def optional_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_optional),
+    db: AsyncSession = Depends(get_db),
+) -> Optional[User]:
+    """Возвращает текущего пользователя, если передан валидный токен, либо None."""
+    if credentials is None:
+        return None
+    try:
+        payload = decode_token(credentials.credentials)
+        if payload.get("type") != "access":
+            return None
+        user_id = str(payload.get("sub"))
+        return await db.get(User, user_id)
+    except Exception:
+        return None
+
 
 
 def require_roles(*roles: str):

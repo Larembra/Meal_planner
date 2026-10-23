@@ -106,3 +106,100 @@ class RecipeCreate(BaseModel):
     image: Optional[str] = None
     ingredients: list[dict] = Field(default_factory=list)
     steps: list[str] = Field(default_factory=list)
+
+
+class PriceEstimateRequest(BaseModel):
+    dish_name: str = Field(min_length=1, max_length=200)
+    category: Optional[str] = None
+    ingredients: list[str] = Field(default_factory=list)
+
+
+class PriceEstimateResponse(BaseModel):
+    price: float
+    is_food: bool = True
+    comment: Optional[str] = None
+
+
+class ImageSuggestRequest(BaseModel):
+    dish_name: str = Field(min_length=1, max_length=200)
+    category: Optional[str] = None
+
+
+class ImageSuggestResponse(BaseModel):
+    image_url: str
+    source: str
+    comment: Optional[str] = None
+
+
+class ConsultRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=1000)
+
+
+class ConsultResponse(BaseModel):
+    answer: str
+
+
+class IngredientsEstimateRequest(BaseModel):
+    dish_name: str = Field(min_length=1, max_length=200)
+    ingredients: list[dict] = Field(default_factory=list)
+
+
+class IngredientsEstimateResponse(BaseModel):
+    ingredients: list[dict]
+    total_price: float
+    comment: Optional[str] = None
+
+
+class NutritionEstimateRequest(BaseModel):
+    dish_name: str = Field(min_length=1, max_length=200)
+    ingredients: list[dict] = Field(default_factory=list)
+
+
+class NutritionEstimateResponse(BaseModel):
+    calories: float
+    protein: float
+    fat: float
+    carbs: float
+    comment: Optional[str] = None
+
+
+class CookingStepsRequest(BaseModel):
+    dish_name: str = Field(min_length=1, max_length=200)
+    ingredients: list[dict] = Field(default_factory=list)
+
+
+class CookingStepsResponse(BaseModel):
+    steps: list[str]
+    comment: Optional[str] = None
+
+
+class CookingTimeRequest(BaseModel):
+    dish_name: str = Field(min_length=1, max_length=200)
+    steps: list[str] = Field(default_factory=list)
+    ingredients: list[dict] = Field(default_factory=list)
+
+
+class CookingTimeResponse(BaseModel):
+    cooking_time: int
+    comment: Optional[str] = None
+
+
+class FullRecipeGenerateRequest(BaseModel):
+    dish_name: str = Field(min_length=1, max_length=200)
+    category: Optional[str] = "Ужин"
+
+
+class FullRecipeGenerateResponse(BaseModel):
+    name: str
+    category: str
+    time: int
+    calories: float
+    protein: float
+    fat: float
+    carbs: float
+    price: float
+    ingredients: list[dict]
+    steps: list[str]
+    image_url: Optional[str] = None
+    comment: Optional[str] = None
+
