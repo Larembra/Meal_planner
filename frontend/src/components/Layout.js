@@ -59,6 +59,14 @@ export default function Layout({ children }) {
             <span>Привет, {name}!</span>
             <details>
               <summary className="avatar" title="Меню аккаунта">{name.charAt(0).toUpperCase()}</summary>
+              <a
+                href="http://127.0.0.1:8000/docs"
+                target="_blank"
+                rel="noreferrer"
+                style={{ display: "block", padding: "8px 12px", textDecoration: "none", color: "inherit", fontSize: "14px", borderBottom: "1px solid var(--border, #eee)" }}
+              >
+                Swagger API ↗
+              </a>
               <button type="button" onClick={logout}>Выйти из аккаунта</button>
             </details>
           </> : <a href="/login">Войти</a>}

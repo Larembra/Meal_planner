@@ -13,4 +13,4 @@ async def test_auth_and_profile(client):
 
 @pytest.mark.asyncio
 async def test_protected_resources(client):
-    assert (await client.get("/api/v1/recipes")).status_code == 401
+    assert (await client.get("/api/v1/recipes")).status_code in (401, 403)

@@ -92,7 +92,18 @@ export default function Recipes() {
         .toLowerCase()
         .includes(q.toLowerCase())
 
-      const matchesCategory = cat === 'Все блюда' || r.category === cat
+      const categoryMap = {
+        breakfast: 'Завтрак',
+        lunch: 'Обед',
+        dinner: 'Ужин',
+        snack: 'Перекус',
+        'Завтрак': 'Завтрак',
+        'Обед': 'Обед',
+        'Ужин': 'Ужин',
+        'Перекус': 'Перекус',
+      }
+      const itemCat = categoryMap[r.category] || categoryMap[r.meal_type] || r.category
+      const matchesCategory = cat === 'Все блюда' || itemCat === cat || r.category === cat
 
       const tags = r.tags || [r.tag]
       const matchesTags = selectedTags.length === 0 || selectedTags.some(tag =>
@@ -151,7 +162,7 @@ export default function Recipes() {
         <input
           value={q}
           onChange={e => setQ(e.target.value)}
-          placeholder="⌕  Поиск рецептов (например: овсянка, лосось, курица)..."
+          placeholder="Поиск рецептов (например: овсянка, лосось, курица)..."
         />
 
         <div className="filters-wrap">
@@ -161,7 +172,7 @@ export default function Recipes() {
             aria-expanded={filtersOpen}
             onClick={openFilters}
           >
-            Фильтры 🧪
+            Фильтры
           </Button>
 
           {filtersOpen && (
@@ -257,46 +268,58 @@ export default function Recipes() {
           >
             <ImageBox src={r.image} />
 
+            <div className="recipe-card-actions">
+              <button
+                type="button"
+                className={`action-btn fav-btn ${favorites.includes(r.id) ? "is-fav" : ""}`}
+                title={favorites.includes(r.id) ? "Убрать из избранного" : "Добавить в избранное"}
+                aria-label={favorites.includes(r.id) ? "Убрать из избранного" : "Добавить в избранное"}
+                onClick={event => { event.stopPropagation(); toggleFavorite(r.id) }}
+                onKeyDown={event => event.stopPropagation()}
+              >
+                {favorites.includes(r.id) ? "♥" : "♡"}
+              </button>
+              {isModerator && (
+                <a
+                  className="action-btn edit-btn"
+                  href={`/recipes/edit?id=${r.id}`}
+                  title="Редактировать"
+                  aria-label={`Редактировать рецепт ${r.title}`}
+                  onClick={event => event.stopPropagation()}
+                  onKeyDown={event => event.stopPropagation()}
+                >
+                  ✎
+                </a>
+              )}
+              {isModerator && (
+                <button
+                  type="button"
+                  className="action-btn delete-btn"
+                  title="Удалить рецепт полностью"
+                  aria-label={`Удалить рецепт ${r.title}`}
+                  onClick={event => removeRecipe(event, r)}
+                  onKeyDown={event => event.stopPropagation()}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
             <div className="recipe-body">
               <div className="tags">
-                <span>{r.category}</span>
-                <span>{r.tag}</span>
-                {favorites.includes(r.id) && <span>Избранное</span>}
+                {r.category && <span className="tag-category">{r.category}</span>}
+                {r.tag && <span className="tag-general">{r.tag}</span>}
+                {favorites.includes(r.id) && <span className="tag-favorite">Избранное</span>}
               </div>
 
               <h3>{r.title}</h3>
 
               <div className="recipe-meta">
-                <span>◷ {r.time} мин</span>
+                <span>{r.time} мин</span>
                 <strong>{r.calories} ккал | Б: {r.protein}г</strong>
               </div>
 
               <div className="recipe-price">Цена: {sumIngredientPrices(r.ingredients) || r.price || 0} ₽</div>
-
-              <button type="button" className="edit-icon"
-                title={favorites.includes(r.id) ? "Убрать из избранного" : "Добавить в избранное"}
-                aria-label={favorites.includes(r.id) ? "Убрать из избранного" : "Добавить в избранное"}
-                onClick={event => { event.stopPropagation(); toggleFavorite(r.id) }}
-                onKeyDown={event => event.stopPropagation()}
-              >{favorites.includes(r.id) ? "♥" : "♡"}</button>
-              {isModerator && <a
-                className="edit-icon"
-                href={`/recipes/edit?id=${r.id}`}
-                title="Редактировать"
-                aria-label={`Редактировать рецепт ${r.title}`}
-                onClick={event => event.stopPropagation()}
-                onKeyDown={event => event.stopPropagation()}
-              >
-                ✎
-              </a>}
-              {isModerator && <button
-                type="button"
-                className="edit-icon delete-recipe-icon"
-                title="Удалить рецепт полностью"
-                aria-label={`Удалить рецепт ${r.title}`}
-                onClick={event => removeRecipe(event, r)}
-                onKeyDown={event => event.stopPropagation()}
-              >×</button>}
             </div>
           </Card>
         ))}

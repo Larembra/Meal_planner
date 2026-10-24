@@ -23,7 +23,9 @@ export default function RecipeDetail() {
       const rations = await getRations()
       if (!rations.length) throw new Error("Сначала создайте рацион")
       const today = new Date().toISOString().slice(0, 10)
-      await addMealToRation(rations[0].id, { meal_id: recipe.id, date: today, meal_type: recipe.category || "dinner", servings: 1 })
+      const mealTypeMap = { 'Завтрак': 'breakfast', 'Обед': 'lunch', 'Ужин': 'dinner', 'Перекус': 'snack' }
+      const targetType = recipe.meal_type || mealTypeMap[recipe.category] || recipe.category || "dinner"
+      await addMealToRation(rations[0].id, { meal_id: recipe.id, date: today, meal_type: targetType, servings: 1 })
       setMessage("Блюдо добавлено в рацион")
     } catch (err) { setError(err.message) }
   }
@@ -69,20 +71,20 @@ export default function RecipeDetail() {
 
           <Card className="price-card">
             <h3>Стоимость блюда</h3>
-            <strong>{sumIngredientPrices(recipe.ingredients) || recipe.price || 0} ₽</strong>
-            <p>Сумма цен ингредиентов на порцию.</p>
+            <strong>{recipe.price || sumIngredientPrices(recipe.ingredients) || 0} ₽</strong>
+            <p>Ориентировочная розничная цена в магазине.</p>
           </Card>
         </div>
 
         <div className="recipe-detail-content">
           <div className="eyebrow">
-            {recipe.category} ⏱ Время приготовления: {recipe.time} минут
+            {recipe.category} · Время приготовления: {recipe.time} мин
           </div>
 
           <h1>{recipe.title}</h1>
 
           <Card>
-            <h3>Ингредиенты (на 2 порции)</h3>
+            <h3>Ингредиенты {recipe.servings ? `(${recipe.servings} порц.)` : ''}</h3>
 
             <ul className="ingredient-list">
               {(recipe.ingredients || ['Ингредиенты указаны в рецепте']).map((item, i) => (
@@ -103,7 +105,7 @@ export default function RecipeDetail() {
             <Button onClick={addToRation}>Добавить в рацион питания</Button>
 
             <Button variant="secondary" onClick={addShopping}>
-              🛒 Добавить ингредиенты в покупки
+              Добавить ингредиенты в покупки
             </Button>
           </div>
           {message && <p className="success">{message}</p>}
@@ -112,26 +114,24 @@ export default function RecipeDetail() {
           <Card>
             <h3>Пошаговое приготовление</h3>
 
-            <ol className="steps-list">
-              {(recipe.steps || []).map((s, i) => (
-                <li key={s}>
-                  <span>{i + 1}</span>
+            {(recipe.steps && recipe.steps.length > 0) ? (
+              <ol className="steps-list">
+                {recipe.steps.map((s, i) => (
+                  <li key={s || i}>
+                    <span>{i + 1}</span>
 
-                  <div>
-                    <strong>
-                      {[
-                        'Подготовка основы',
-                        'Замес теста',
-                        'Формирование',
-                        'Запекание / Обжарка'
-                      ][i] || `Шаг ${i + 1}`}
-                    </strong>
-
-                    <p>{s}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
+                    <div>
+                      <strong>Шаг {i + 1}</strong>
+                      <p>{s}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="muted" style={{ margin: "8px 0" }}>
+                {recipe.description || "Подготовьте ингредиенты по списку, выполните тепловую обработку согласно рецепту и подавайте готовое блюдо."}
+              </p>
+            )}
           </Card>
         </div>
       </div>

@@ -99,8 +99,8 @@ export default function WeeklyDiet() {
           <p>{plan ? `План на ${days.length} ${dayWord(days.length)}` : 'Ваш персональный план питания'}</p>
         </div>
         <div className="actions">
-          <Button href="/diet/generate">💫 Сгенерировать рацион</Button>
-          <Button href="/profile" variant="secondary">⚙️ Настройки</Button>
+          <Button href="/diet/generate">Сгенерировать рацион</Button>
+          <Button href="/profile" variant="secondary">Настройки</Button>
         </div>
       </div>
 

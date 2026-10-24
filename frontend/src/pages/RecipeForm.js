@@ -23,9 +23,9 @@ const emptyIngredient = () => ({
 });
 
 const defaultIngredients = [
-  { name: "Куриное филе", quantity: "200 г", price: 180, category: "🥩 Мясо и рыба" },
-  { name: "Брокколи", quantity: "150 г", price: 90, category: "🥬 Бакалея и овощи" },
-  { name: "Сливки 10%", quantity: "80 мл", price: 35, category: "🥛 Молочные продукты" },
+  { name: "Куриное филе", quantity: "200 г", price: 360, category: "Мясо и рыба" },
+  { name: "Брокколи", quantity: "150 г", price: 165, category: "Бакалея и овощи" },
+  { name: "Сливки 10%", quantity: "80 мл", price: 95, category: "Молочные продукты" },
 ];
 
 export default function RecipeForm({ mode }) {
@@ -373,7 +373,7 @@ export default function RecipeForm({ mode }) {
             {/* Banner for All-in-one AI Generation */}
             <div className="magic-fill-banner">
               <div className="magic-fill-text">
-                <strong>✨ ИИ-ассистент шеф-повара</strong>
+                <strong>ИИ-ассистент шеф-повара</strong>
                 <span>
                   Заполнить все поля (ингредиенты с ценами, КБЖУ, шаги, время и фото) в один клик:
                 </span>
@@ -385,17 +385,17 @@ export default function RecipeForm({ mode }) {
                 disabled={isMagicLoading || !name.trim()}
                 title="Автоматически сформировать и заполнить все поля рецепта"
               >
-                {isMagicLoading ? "✨ Заполняем рецепт..." : "✨ Заполнить всё через ИИ"}
+                {isMagicLoading ? "Заполняем рецепт..." : "Заполнить всё через ИИ"}
               </button>
             </div>
             {magicError && (
               <div className="ai-error-message" role="alert">
-                ⚠️ {magicError}
+                {magicError}
               </div>
             )}
             {magicComment && !magicError && (
               <div className="ai-comment-badge" style={{ marginBottom: "14px" }}>
-                ✅ {magicComment}
+                {magicComment}
               </div>
             )}
 
@@ -410,19 +410,19 @@ export default function RecipeForm({ mode }) {
                   title="Рассчитать рыночную цену каждого ингредиента в рублях через ИИ"
                 >
                   {isIngredientsLoading
-                    ? "⚡ Считаем цены..."
-                    : "⚡ Рассчитать цены ингредиентов через AI"}
+                    ? "Считаем цены..."
+                    : "Рассчитать цены через AI"}
                 </button>
               </div>
 
               {ingredientsError && (
                 <div className="ai-error-message" role="alert">
-                  ⚠️ {ingredientsError}
+                  {ingredientsError}
                 </div>
               )}
               {ingredientsComment && !ingredientsError && (
                 <div className="ai-comment-badge" style={{ marginBottom: "10px" }}>
-                  ℹ️ {ingredientsComment}
+                  {ingredientsComment}
                 </div>
               )}
 
@@ -485,7 +485,7 @@ export default function RecipeForm({ mode }) {
                     disabled={isPriceEstimating || !name.trim()}
                     title="Запросить у нейросети среднюю стоимость порции этого блюда"
                   >
-                    {isPriceEstimating ? "⚡ Оцениваем..." : "⚡ Оценить стоимость порции"}
+                    {isPriceEstimating ? "Оцениваем..." : "Оценить стоимость порции"}
                   </button>
                 </div>
                 <div className="recipe-price-input-row">
@@ -500,12 +500,12 @@ export default function RecipeForm({ mode }) {
                   />
                   <span className="currency-label">₽</span>
                   {priceComment && (
-                    <span className="ai-comment-badge">ℹ️ {priceComment}</span>
+                    <span className="ai-comment-badge">{priceComment}</span>
                   )}
                 </div>
                 {priceError && (
                   <div className="ai-error-message" role="alert">
-                    ⚠️ {priceError}
+                    {priceError}
                   </div>
                 )}
               </div>
@@ -521,17 +521,17 @@ export default function RecipeForm({ mode }) {
                   disabled={isImageLoading || !name.trim()}
                   title="Точный поиск фото блюда в Pinterest, Wikipedia и TheMealDB"
                 >
-                  {isImageLoading ? "🔍 Ищем фото..." : "🔍 Подобрать фото блюда"}
+                  {isImageLoading ? "Ищем фото..." : "Подобрать фото блюда"}
                 </button>
               </div>
               {imageError && (
                 <div className="ai-error-message" role="alert">
-                  ⚠️ {imageError}
+                  {imageError}
                 </div>
               )}
               {imageSource && !imageError && (
                 <div className="ai-comment-badge">
-                  📸 {imageSource}
+                  {imageSource}
                 </div>
               )}
               <div className="image-url-row">
@@ -568,18 +568,18 @@ export default function RecipeForm({ mode }) {
                 disabled={isNutritionLoading || !name.trim()}
                 title="Рассчитать калории, белки, жиры и углеводы через ИИ"
               >
-                {isNutritionLoading ? "⚡ Считаем КБЖУ..." : "⚡ Рассчитать КБЖУ через AI"}
+                {isNutritionLoading ? "Считаем КБЖУ..." : "Рассчитать КБЖУ через AI"}
               </button>
             </div>
 
             {nutritionError && (
               <div className="ai-error-message" role="alert">
-                ⚠️ {nutritionError}
+                {nutritionError}
               </div>
             )}
             {nutritionComment && !nutritionError && (
               <div className="ai-comment-badge" style={{ marginBottom: "12px" }}>
-                ℹ️ {nutritionComment}
+                {nutritionComment}
               </div>
             )}
 
@@ -615,18 +615,18 @@ export default function RecipeForm({ mode }) {
                 disabled={isStepsLoading || !name.trim()}
                 title="Сгенерировать пошаговый алгоритм приготовления блюда через ИИ"
               >
-                {isStepsLoading ? "⚡ Генерируем шаги..." : "⚡ Сгенерировать шаги через AI"}
+                {isStepsLoading ? "Генерируем шаги..." : "Сгенерировать шаги через AI"}
               </button>
             </div>
 
             {stepsError && (
               <div className="ai-error-message" role="alert">
-                ⚠️ {stepsError}
+                {stepsError}
               </div>
             )}
             {stepsComment && !stepsError && (
               <div className="ai-comment-badge" style={{ marginBottom: "12px" }}>
-                ℹ️ {stepsComment}
+                {stepsComment}
               </div>
             )}
 
@@ -660,17 +660,17 @@ export default function RecipeForm({ mode }) {
                     disabled={isTimeLoading || !name.trim()}
                     title="Рассчитать время готовки через ИИ"
                   >
-                    {isTimeLoading ? "⚡..." : "⚡ Время через AI"}
+                    {isTimeLoading ? "Загрузка..." : "Время через AI"}
                   </button>
                 </div>
                 {timeError && (
                   <div className="ai-error-message" role="alert">
-                    ⚠️ {timeError}
+                    {timeError}
                   </div>
                 )}
                 {timeComment && !timeError && (
                   <div className="ai-comment-badge" style={{ marginBottom: "6px" }}>
-                    ℹ️ {timeComment}
+                    {timeComment}
                   </div>
                 )}
                 <input

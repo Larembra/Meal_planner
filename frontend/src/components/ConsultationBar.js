@@ -6,7 +6,23 @@ export default function ConsultationBar() {
   const [loading, setLoading] = useState(false);
   const [answer, setAnswer] = useState(null);
   const [error, setError] = useState(null);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(() => {
+    try {
+      return localStorage.getItem("consultation_bar_open") !== "false";
+    } catch {
+      return true;
+    }
+  });
+
+  const toggleOpen = () => {
+    setIsOpen(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem("consultation_bar_open", String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
@@ -40,17 +56,16 @@ export default function ConsultationBar() {
         <div className="consultation-card">
           <div className="consultation-header">
             <div className="consultation-title">
-              <span className="consultation-icon">⚡</span>
               <strong>ИИ-консультант по питанию</strong>
               <span className="consultation-badge">Экспресс-совет (без контекста)</span>
             </div>
             <button
               type="button"
               className="consultation-toggle-btn"
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={toggleOpen}
               title={isOpen ? "Свернуть строку консультации" : "Развернуть строку консультации"}
             >
-              {isOpen ? "Свернуть ▲" : "Задать вопрос ▼"}
+              {isOpen ? "Свернуть" : "Задать вопрос"}
             </button>
           </div>
 
@@ -89,7 +104,6 @@ export default function ConsultationBar() {
               {error && (
                 <div className="consultation-alert consultation-error" role="alert">
                   <div className="alert-content">
-                    <span className="alert-icon">⚠️</span>
                     <span>{error}</span>
                   </div>
                   <button type="button" onClick={() => setError(null)} className="alert-close">

@@ -71,17 +71,18 @@ async def add_ration_meal(ration_id: str, data: RationMealCreate,
     meal = await db.get(Meal, data.meal_id)
     if meal is None or meal.status != "published":
         raise HTTPException(404, "Блюдо не найдено")
+    meal_type = {"Завтрак": "breakfast", "Обед": "lunch", "Ужин": "dinner", "Перекус": "snack"}.get(data.meal_type, data.meal_type)
     existing = (await db.execute(select(RationMeal).where(
         RationMeal.ration_id == ration.id,
         RationMeal.date == data.date,
-        RationMeal.meal_type == data.meal_type,
+        RationMeal.meal_type == meal_type,
     ))).scalar_one_or_none()
     if existing:
         existing.meal_id = meal.id
         existing.servings = data.servings
     else:
         existing = RationMeal(ration_id=ration.id, meal_id=meal.id, date=data.date,
-                              meal_type=data.meal_type, servings=data.servings)
+                              meal_type=meal_type, servings=data.servings)
         db.add(existing)
     await db.commit()
     await db.refresh(existing)

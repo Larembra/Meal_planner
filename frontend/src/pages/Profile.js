@@ -85,7 +85,7 @@ export default function Profile() {
       <PageHeader role={user?.role || "client"} />
       <div className="profile-grid profile-grid-settings">
         <Card>
-          <h2>🎯 Цель и режим питания</h2>
+          <h2>Цель и режим питания</h2>
           <p className="profile-hint">Выберите ориентир по калорийности и удобный распорядок дня.</p>
           <div className="profile-goals">
             {goalOptions.map(option => (
@@ -114,7 +114,7 @@ export default function Profile() {
         </Card>
 
         <Card>
-          <h2>🥗 Ваши предпочтения</h2>
+          <h2>Ваши предпочтения</h2>
           <p className="profile-hint">Эти настройки помогут подобрать подходящие блюда и рецепты.</p>
           <label>
             Тип питания
@@ -142,13 +142,28 @@ export default function Profile() {
           </label>
         </Card>
       </div>
-      <div className="right-actions">
+      <div className="right-actions" style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+        {message && <span className="profile-toast" role="status">{message}</span>}
+        <a
+          href="http://127.0.0.1:8000/docs"
+          target="_blank"
+          rel="noreferrer"
+          className="button button-secondary"
+          style={{ textDecoration: "none", display: "inline-flex", alignItems: "center" }}
+        >
+          Swagger API ↗
+        </a>
         <Button onClick={save}>Сохранить изменения</Button>
-        {message && <p role="status">{message}</p>}
       </div>
     </div>
   );
 }
+
+const roleLabels = {
+  client: "Пользователь",
+  moderator: "Модератор",
+  admin: "Администратор",
+};
 
 function PageHeader({ role }) {
   return (
@@ -157,7 +172,7 @@ function PageHeader({ role }) {
         <h1>Настройки рациона</h1>
         <p>Выберите цель, режим питания и ограничения для персонального меню.</p>
       </div>
-      <span className="role-badge">{role}</span>
+      <span className="role-badge">{roleLabels[role] || role}</span>
     </div>
   );
 }

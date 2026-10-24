@@ -26,11 +26,11 @@ export const recipes = [
     image: '/static/vitya_nyam_nyam.jpg',
     description: "Нежное куриное филе с брокколи в сливочном соусе.",
     ingredients: [
-      { name: "Куриное филе", quantity: "300 г", price: 280, category: "🥩 Мясо и рыба" },
-      { name: "Брокколи свежая", quantity: "150 г", price: 90, category: "🥬 Бакалея и овощи" },
-      { name: "Сливки 15%", quantity: "100 мл", price: 40, category: "🥛 Молочные продукты" },
-      { name: "Оливковое масло", quantity: "10 мл", price: 15, category: "🥬 Бакалея и овощи" },
-      { name: "Соль, перец, сухой чеснок", quantity: "по вкусу", price: 5, category: "🧂 Прочее" },
+      { name: "Куриное филе", quantity: "300 г", price: 360, category: "Мясо и рыба" },
+      { name: "Брокколи свежая", quantity: "150 г", price: 165, category: "Бакалея и овощи" },
+      { name: "Сливки 15%", quantity: "100 мл", price: 95, category: "Молочные продукты" },
+      { name: "Оливковое масло", quantity: "10 мл", price: 390, category: "Бакалея и овощи" },
+      { name: "Соль, перец, сухой чеснок", quantity: "по вкусу", price: 65, category: "Прочее" },
     ],
     steps: [
       "Промойте куриное филе, обсушите бумажным полотенцем и нарежьте средними кусочками. Обжарьте на оливковом масле 5-7 минут.",
@@ -142,12 +142,12 @@ export const recipes = [
     carbs: 51,
     image: '/static/vitya_nyam_nyam.jpg',
     ingredients: [
-      { name: "Творог 5% жирности", quantity: "400 г", price: 140, category: "🥛 Молочные продукты" },
-      { name: "Куриное яйцо (С1)", quantity: "1 шт.", price: 12, category: "🥛 Молочные продукты" },
-      { name: "Рисовая мука", quantity: "3 ст. л.", price: 20, category: "🥬 Бакалея и овощи" },
-      { name: "Сахарозаменитель (стевия)", quantity: "по вкусу", price: 15, category: "🥬 Бакалея и овощи" },
-      { name: "Ванильный экстракт", quantity: "1/2 ч. л.", price: 18, category: "🥬 Бакалея и овощи" },
-      { name: "Свежие ягоды (малина, черника)", quantity: "100 г", price: 55, category: "🥬 Бакалея и овощи" },
+      { name: "Творог 5% жирности", quantity: "400 г", price: 145, category: "Молочные продукты" },
+      { name: "Куриное яйцо (С1)", quantity: "1 шт.", price: 125, category: "Молочные продукты" },
+      { name: "Рисовая мука", quantity: "3 ст. л.", price: 95, category: "Бакалея и овощи" },
+      { name: "Сахарозаменитель (стевия)", quantity: "по вкусу", price: 180, category: "Бакалея и овощи" },
+      { name: "Ванильный экстракт", quantity: "1/2 ч. л.", price: 150, category: "Бакалея и овощи" },
+      { name: "Свежие ягоды (малина, черника)", quantity: "100 г", price: 220, category: "Бакалея и овощи" },
     ],
     steps: [
       "Выложите творог в глубокую миску. Разомните его вилкой до однородного состояния, чтобы не было крупных комков.",
@@ -262,11 +262,11 @@ export const mealRecipes = [
     carbs: 45,
     image: '/static/vitya_nyam_nyam.jpg',
     ingredients: [
-      { name: 'Говяжья грудинка', quantity: '400 г', price: 220, category: '🥩 Мясо и рыба' },
-      { name: 'Свекла', quantity: '2 шт.', price: 40, category: '🥬 Бакалея и овощи' },
-      { name: 'Капуста', quantity: '250 г', price: 35, category: '🥬 Бакалея и овощи' },
-      { name: 'Морковь', quantity: '1 шт.', price: 15, category: '🥬 Бакалея и овощи' },
-      { name: 'Сметана 15%', quantity: '60 г', price: 80, category: '🥛 Молочные продукты' },
+      { name: 'Говяжья грудинка', quantity: '400 г', price: 540, category: 'Мясо и рыба' },
+      { name: 'Свекла', quantity: '2 шт.', price: 70, category: 'Бакалея и овощи' },
+      { name: 'Капуста', quantity: '250 г', price: 75, category: 'Бакалея и овощи' },
+      { name: 'Морковь', quantity: '1 шт.', price: 65, category: 'Бакалея и овощи' },
+      { name: 'Сметана 15%', quantity: '60 г', price: 95, category: 'Молочные продукты' },
     ],
     steps: [
       'Отварите говядину до готовности и подготовьте овощи.',
@@ -287,10 +287,10 @@ export const mealRecipes = [
     carbs: 54,
     image: '/static/vitya_nyam_nyam.jpg',
     ingredients: [
-      { name: 'Овсяные хлопья', quantity: '60 г', price: 25, category: '🥬 Бакалея и овощи' },
-      { name: 'Кокосовое молоко', quantity: '200 мл', price: 110, category: '🥛 Молочные продукты' },
-      { name: 'Банан', quantity: '1 шт.', price: 40, category: '🥬 Бакалея и овощи' },
-      { name: 'Корица', quantity: 'по вкусу', price: 15, category: '🧂 Прочее' },
+      { name: 'Овсяные хлопья', quantity: '60 г', price: 95, category: 'Бакалея и овощи' },
+      { name: 'Кокосовое молоко', quantity: '200 мл', price: 180, category: 'Молочные продукты' },
+      { name: 'Банан', quantity: '1 шт.', price: 130, category: 'Бакалея и овощи' },
+      { name: 'Корица', quantity: 'по вкусу', price: 65, category: 'Прочее' },
     ],
     steps: [
       'Нагрейте кокосовое молоко и добавьте овсяные хлопья.',
@@ -311,9 +311,9 @@ export const mealRecipes = [
     carbs: 12,
     image: '/static/vitya_nyam_nyam.jpg',
     ingredients: [
-      { name: 'Греческий йогурт 2%', quantity: '200 г', price: 90, category: '🥛 Молочные продукты' },
-      { name: 'Миндаль', quantity: '25 г', price: 55, category: '🥬 Бакалея и овощи' },
-      { name: 'Мед', quantity: '1 ч. л.', price: 15, category: '🥬 Бакалея и овощи' },
+      { name: 'Греческий йогурт 2%', quantity: '200 г', price: 95, category: 'Молочные продукты' },
+      { name: 'Миндаль', quantity: '25 г', price: 195, category: 'Бакалея и овощи' },
+      { name: 'Мед', quantity: '1 ч. л.', price: 180, category: 'Бакалея и овощи' },
     ],
     steps: [
       'Переложите йогурт в миску.',
@@ -334,11 +334,11 @@ export const mealRecipes = [
     carbs: 10,
     image: '/static/vitya_nyam_nyam.jpg',
     ingredients: [
-      { name: 'Филе форели', quantity: '180 г', price: 210, category: '🥩 Мясо и рыба' },
-      { name: 'Брокколи', quantity: '150 г', price: 50, category: '🥬 Бакалея и овощи' },
-      { name: 'Лимон', quantity: '1/2 шт.', price: 15, category: '🥬 Бакалея и овощи' },
-      { name: 'Оливковое масло', quantity: '1 ч. л.', price: 10, category: '🥬 Бакалея и овощи' },
-      { name: 'Соль и перец', quantity: 'по вкусу', price: 5, category: '🧂 Прочее' },
+      { name: 'Филе форели', quantity: '180 г', price: 480, category: 'Мясо и рыба' },
+      { name: 'Брокколи', quantity: '150 г', price: 165, category: 'Бакалея и овощи' },
+      { name: 'Лимон', quantity: '1/2 шт.', price: 65, category: 'Бакалея и овощи' },
+      { name: 'Оливковое масло', quantity: '1 ч. л.', price: 390, category: 'Бакалея и овощи' },
+      { name: 'Соль и перец', quantity: 'по вкусу', price: 55, category: 'Прочее' },
     ],
     steps: [
       'Подготовьте форель и брокколи.',
@@ -359,11 +359,11 @@ export const mealRecipes = [
     carbs: 42,
     image: '/static/vitya_nyam_nyam.jpg',
     ingredients: [
-      { name: 'Филе трески', quantity: '180 г', price: 185, category: '🥩 Мясо и рыба' },
-      { name: 'Шпинат', quantity: '80 г', price: 40, category: '🥬 Бакалея и овощи' },
-      { name: 'Рис', quantity: '70 г', price: 20, category: '🥬 Бакалея и овощи' },
-      { name: 'Оливковое масло', quantity: '1 ч. л.', price: 10, category: '🥬 Бакалея и овощи' },
-      { name: 'Соль и перец', quantity: 'по вкусу', price: 5, category: '🧂 Прочее' },
+      { name: 'Филе трески', quantity: '180 г', price: 360, category: 'Мясо и рыба' },
+      { name: 'Шпинат', quantity: '80 г', price: 140, category: 'Бакалея и овощи' },
+      { name: 'Рис', quantity: '70 г', price: 115, category: 'Бакалея и овощи' },
+      { name: 'Оливковое масло', quantity: '1 ч. л.', price: 390, category: 'Бакалея и овощи' },
+      { name: 'Соль и перец', quantity: 'по вкусу', price: 55, category: 'Прочее' },
     ],
     steps: [
       'Отварите рис до готовности.',
@@ -384,10 +384,10 @@ export const mealRecipes = [
     carbs: 8,
     image: '/static/vitya_nyam_nyam.jpg',
     ingredients: [
-      { name: 'Куриная грудка', quantity: '200 г', price: 140, category: '🥩 Мясо и рыба' },
-      { name: 'Брокколи', quantity: '150 г', price: 50, category: '🥬 Бакалея и овощи' },
-      { name: 'Оливковое масло', quantity: '1 ч. л.', price: 15, category: '🥬 Бакалея и овощи' },
-      { name: 'Соль, перец и специи', quantity: 'по вкусу', price: 5, category: '🧂 Прочее' },
+      { name: 'Куриная грудка', quantity: '200 г', price: 360, category: 'Мясо и рыба' },
+      { name: 'Брокколи', quantity: '150 г', price: 165, category: 'Бакалея и овощи' },
+      { name: 'Оливковое масло', quantity: '1 ч. л.', price: 390, category: 'Бакалея и овощи' },
+      { name: 'Соль, перец и специи', quantity: 'по вкусу', price: 65, category: 'Прочее' },
     ],
     steps: [
       'Приправьте куриную грудку и обжарьте на гриле до готовности.',
@@ -398,10 +398,10 @@ export const mealRecipes = [
 ];
 
 export const ingredientCategories = [
-  '🥛 Молочные продукты',
-  '🥩 Мясо и рыба',
-  '🥬 Бакалея и овощи',
-  '🧂 Прочее',
+  'Молочные продукты',
+  'Мясо и рыба',
+  'Бакалея и овощи',
+  'Прочее',
 ]
 
 export function dietRecipes() {
@@ -420,9 +420,10 @@ export function buildShoppingGroups(sourceRecipes = dietRecipes()) {
 
   sourceRecipes.forEach(recipe => {
     (recipe.ingredients || []).forEach((ing, i) => {
-      const title = indexByTitle[ing.category] != null
-        ? ing.category
-        : '🧂 Прочее'
+      const cleanCategory = (ing.category || '').replace(/^[^\wа-яА-ЯёЁa-zA-Z]+\s*/, '').trim()
+      const title = indexByTitle[cleanCategory] != null
+        ? cleanCategory
+        : (indexByTitle[ing.category] != null ? ing.category : 'Прочее')
       const key = `${title}::${ing.name}`
       if (merged.has(key)) {
         const prev = merged.get(key)
@@ -440,7 +441,10 @@ export function buildShoppingGroups(sourceRecipes = dietRecipes()) {
   })
 
   merged.forEach(item => {
-    groups[indexByTitle[item.category]].items.push(item)
+    const idx = indexByTitle[item.category] ?? indexByTitle['Прочее'] ?? 0
+    if (groups[idx] && groups[idx].items) {
+      groups[idx].items.push(item)
+    }
   })
 
   return groups.filter(group => group.items.length)
@@ -449,7 +453,7 @@ export function buildShoppingGroups(sourceRecipes = dietRecipes()) {
 export const shoppingGroups = buildShoppingGroups()
 
 export function sumIngredientPrices(ingredients = []) {
-  return ingredients.reduce((sum, item) => {
+  return (ingredients || []).reduce((sum, item) => {
     if (!item || typeof item !== 'object') return sum
     return sum + (Number(item.price) || 0)
   }, 0)

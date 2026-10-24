@@ -1,6 +1,6 @@
 # Backend Meal Planner
 
-Бэкенд — FastAPI с PostgreSQL и pgvector. Готовая схема и данные находятся в `data/seed.sql`; база создаётся скриптом `data/create_database.py`. API не создаёт таблицы при старте. Для генерации рациона нужен ключ OpenRouter в `backend/.env`.
+Бэкенд — FastAPI с PostgreSQL и pgvector. Готовая схема и данные находятся в `data/seed.sql`; база создаётся скриптом `data/create_database.py`. API не создаёт таблицы при старте. Для работы ИИ-функций и генерации рациона нужен ключ Gemini в `backend/.env`.
 
 ## Рекомендуемый запуск на macOS (Docker только для PostgreSQL)
 
@@ -136,14 +136,12 @@ DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/Meal_planner
 SECRET_KEY=замените-на-длинную-случайную-строку
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=7
-DEBUG=false
-OPENROUTER_API_KEY=sk-or-v1-ваш-ключ
-OPENROUTER_TIMEOUT_SECONDS=120
+GEMINI_API_KEY=ваш-ключ-google-ai-studio
+GEMINI_MODEL=gemini-3.5-flash-lite
 EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
-OPENROUTER_MODEL=apodex/apodex-1.1-mini:free
 ```
 
-Сгенерировать случайный секрет можно командой `openssl rand -hex 32`; вставьте её результат вместо значения `SECRET_KEY`. Получите API-ключ OpenRouter в своём аккаунте и замените пример `OPENROUTER_API_KEY` на настоящий ключ. Не добавляйте `backend/.env` в Git.
+Сгенерировать случайный секрет можно командой `openssl rand -hex 32`; вставьте её результат вместо значения `SECRET_KEY`. Получите API-ключ Gemini на aistudio.google.com и укажите его в `GEMINI_API_KEY`. Не добавляйте `backend/.env` в Git.
 
 При запуске через Docker Compose значение `DATABASE_URL` внутри контейнера API автоматически заменяется адресом контейнера БД (`db`). Указанный в файле адрес `localhost` пригодится при локальном запуске API без Docker.
 
@@ -188,7 +186,7 @@ npm ci
 npm start
 ```
 
-Откройте `http://localhost:3000`. Фронтенд уже настроен на API `http://localhost:8000/api/v1`. Зарегистрируйте пользователя и войдите. Настройте профиль; для генерации рациона должен быть задан рабочий `OPENROUTER_API_KEY`.
+Откройте `http://localhost:3000`. Фронтенд уже настроен на API `http://localhost:8000/api/v1`. Зарегистрируйте пользователя и войдите. Настройте профиль; для генерации рациона должен быть задан рабочий `GEMINI_API_KEY`.
 
 ### Остановка и пересоздание базы
 
@@ -229,7 +227,7 @@ if (!(Test-Path backend\.env)) { Copy-Item backend\.env.example backend\.env }
 notepad backend\.env
 ```
 
-Заполните `OPENROUTER_API_KEY` и `SECRET_KEY`, затем запустите команды:
+Заполните `GEMINI_API_KEY` и `SECRET_KEY`, затем запустите команды:
 
 ```powershell
 cd backend
@@ -287,7 +285,7 @@ if (!(Test-Path .env)) { Copy-Item .env.example .env }
 notepad .env
 ```
 
-Укажите в `.env` URL вашей локальной базы и настоящий `OPENROUTER_API_KEY`. Задайте параметры подключения для скрипта снимка (пример ниже использует пользователя `postgres`):
+Укажите в `.env` URL вашей локальной базы и настоящий `GEMINI_API_KEY`. Задайте параметры подключения для скрипта снимка (пример ниже использует пользователя `postgres`):
 
 ```powershell
 $env:PGHOST = "localhost"
@@ -314,9 +312,8 @@ npm start
 - `DATABASE_URL` — URL PostgreSQL для API. В Docker Compose он переопределяется на внутренний адрес контейнера базы.
 - `SECRET_KEY` — секрет для подписи JWT; используйте длинное случайное значение.
 - `ACCESS_TOKEN_EXPIRE_MINUTES` и `REFRESH_TOKEN_EXPIRE_DAYS` — сроки действия токенов.
-- `OPENROUTER_API_KEY` — ключ, необходимый для генерации рациона.
-- `OPENROUTER_MODEL` — модель по умолчанию: `apodex/apodex-1.1-mini:free`; запрос генерации может указать другую модель.
-- `OPENROUTER_TIMEOUT_SECONDS` — таймаут запроса к модели.
+- `GEMINI_API_KEY` — ключ, необходимый для работы ИИ и генерации рациона.
+- `GEMINI_MODEL` — модель по умолчанию (`gemini-3.5-flash-lite`).
 - `EMBEDDING_MODEL` — модель эмбеддингов для поиска блюд.
 - `DEBUG` — включает SQL-логирование при `true`.
 

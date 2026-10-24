@@ -19,6 +19,14 @@ export default function Tracking() {
       setError(err.message);
     }
   };
+  const slotLabels = {
+    breakfast: 'Завтрак',
+    second_breakfast: '2-й завтрак',
+    lunch: 'Обед',
+    snack: 'Полдник',
+    dinner: 'Ужин',
+  };
+
   return (
     <div className="container">
       <div className="page-title">
@@ -28,7 +36,7 @@ export default function Tracking() {
             Следите за прогрессом соблюдения планов КБЖУ в автоматическом режиме
           </p>
         </div>
-        <span className="streak">🔥 Выполнено приёмов: {completed.length}</span>
+        <span className="streak">Выполнено приёмов: {completed.length}</span>
       </div>
       <div className="tracking-grid">
         <Card>
@@ -43,12 +51,15 @@ export default function Tracking() {
         <Card className="full">
           <h3>Выполненные приемы пищи</h3>
           {error && <p role="alert">{error}</p>}
-          {!entries.length && <p>Записей пока нет. Отметьте приём пищи в разделе «Мой рацион».</p>}
+          {!entries.length && <p className="muted" style={{ margin: "8px 0" }}>Записей пока нет. Отметьте блюдо как съеденное в разделе «Мой рацион».</p>}
           {entries.map(entry => (
             <div className="log-row" key={entry.id}>
-              <span>{entry.completed ? "✓" : "○"}</span>
-              <div>{entry.meal_type} · {entry.entry_date} · {entry.calories} ккал</div>
-              <button type="button" className="tracking-remove" onClick={() => remove(entry.id)}>Удалить запись</button>
+              <span className={`log-badge ${entry.completed ? "done" : ""}`}>{entry.completed ? "✓" : "○"}</span>
+              <div className="log-details">
+                <strong>{slotLabels[entry.meal_type] || entry.meal_type}</strong>
+                <span className="log-meta">· {entry.entry_date} · {entry.calories} ккал</span>
+              </div>
+              <button type="button" className="tracking-remove" onClick={() => remove(entry.id)}>Удалить</button>
             </div>
           ))}
         </Card>

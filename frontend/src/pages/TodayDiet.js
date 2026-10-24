@@ -25,7 +25,7 @@ export default function TodayDiet() {
         </div>
 
         <Button href="/diet/generate">
-          ✨ Сгенерировать новый рацион
+          Сгенерировать новый рацион
         </Button>
       </div>
 
@@ -62,7 +62,7 @@ export default function TodayDiet() {
 
             <div className="meal-body">
               <div className="muted">
-                {meal.type} ⏱ {meal.time} мин
+                {meal.type} · {meal.time} мин
               </div>
 
               <h3>{meal.title}</h3>

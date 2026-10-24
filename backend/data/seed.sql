@@ -751,7 +751,7 @@ COMMENT ON COLUMN public.profiles.budget IS 'Daily food budget in RUB; NULL mean
 COMMENT ON COLUMN public.profiles.meals_per_day IS 'Planned number of meals per day; default: 3.';
 COMMENT ON COLUMN public.profiles.max_cooking_time IS 'Maximum cooking time in minutes; NULL means no limit.';
 COMMENT ON COLUMN public.profiles.preferences IS 'Free-form food preferences; NULL means no preference.';
-COMMENT ON COLUMN public.products.cost IS 'Sample price in RUB per 100 g/ml, or per item when unit is шт.';
+COMMENT ON COLUMN public.products.cost IS 'Retail supermarket grocery price in RUB per package/unit.';
 COMMENT ON COLUMN public.meals.cost IS 'Estimated recipe cost per serving in RUB, calculated from meal_products.';
 COMMENT ON COLUMN public.meals.goal IS 'Recommended goal: maintain, lose_weight, or gain_weight.';
 
@@ -760,38 +760,38 @@ SET updated_at = r.created_at;
 
 UPDATE public.products
 SET cost = CASE name
-    WHEN 'Овсяные хлопья' THEN 12.00
-    WHEN 'Молоко 2.5%' THEN 9.00
-    WHEN 'Банан' THEN 12.00
-    WHEN 'Яйцо' THEN 15.00
-    WHEN 'Авокадо' THEN 70.00
-    WHEN 'Помидор' THEN 15.00
-    WHEN 'Огурец' THEN 12.00
-    WHEN 'Шпинат' THEN 50.00
-    WHEN 'Куриная грудка' THEN 45.00
-    WHEN 'Индейка' THEN 55.00
-    WHEN 'Говядина' THEN 90.00
-    WHEN 'Лосось' THEN 180.00
-    WHEN 'Тунец' THEN 90.00
-    WHEN 'Рис' THEN 10.00
-    WHEN 'Гречка' THEN 12.00
-    WHEN 'Киноа' THEN 55.00
-    WHEN 'Макароны цельнозерновые' THEN 16.00
-    WHEN 'Творог 5%' THEN 18.00
-    WHEN 'Греческий йогурт' THEN 25.00
-    WHEN 'Сыр моцарелла' THEN 45.00
-    WHEN 'Чечевица' THEN 18.00
-    WHEN 'Нут' THEN 16.00
-    WHEN 'Фасоль' THEN 14.00
-    WHEN 'Брокколи' THEN 30.00
-    WHEN 'Морковь' THEN 8.00
-    WHEN 'Болгарский перец' THEN 25.00
-    WHEN 'Картофель' THEN 8.00
-    WHEN 'Яблоко' THEN 12.00
-    WHEN 'Ягоды' THEN 50.00
-    WHEN 'Оливковое масло' THEN 100.00
-    WHEN 'Хлеб цельнозерновой' THEN 18.00
-    WHEN 'Миндаль' THEN 70.00
+    WHEN 'Овсяные хлопья' THEN 95.00
+    WHEN 'Молоко 2.5%' THEN 89.00
+    WHEN 'Банан' THEN 140.00
+    WHEN 'Яйцо' THEN 130.00
+    WHEN 'Авокадо' THEN 150.00
+    WHEN 'Помидор' THEN 160.00
+    WHEN 'Огурец' THEN 130.00
+    WHEN 'Шпинат' THEN 140.00
+    WHEN 'Куриная грудка' THEN 380.00
+    WHEN 'Индейка' THEN 420.00
+    WHEN 'Говядина' THEN 640.00
+    WHEN 'Лосось' THEN 520.00
+    WHEN 'Тунец' THEN 360.00
+    WHEN 'Рис' THEN 120.00
+    WHEN 'Гречка' THEN 95.00
+    WHEN 'Киноа' THEN 240.00
+    WHEN 'Макароны цельнозерновые' THEN 110.00
+    WHEN 'Творог 5%' THEN 145.00
+    WHEN 'Греческий йогурт' THEN 95.00
+    WHEN 'Сыр моцарелла' THEN 175.00
+    WHEN 'Чечевица' THEN 130.00
+    WHEN 'Нут' THEN 140.00
+    WHEN 'Фасоль' THEN 115.00
+    WHEN 'Брокколи' THEN 165.00
+    WHEN 'Морковь' THEN 65.00
+    WHEN 'Болгарский перец' THEN 185.00
+    WHEN 'Картофель' THEN 90.00
+    WHEN 'Яблоко' THEN 140.00
+    WHEN 'Ягоды' THEN 220.00
+    WHEN 'Оливковое масло' THEN 420.00
+    WHEN 'Хлеб цельнозерновой' THEN 75.00
+    WHEN 'Миндаль' THEN 195.00
     ELSE cost
 END;
 
@@ -804,7 +804,7 @@ SET goal = CASE
     cost = COALESCE((
         SELECT ROUND(
             SUM(p.cost * mp.quantity /
-                CASE WHEN p.unit IN ('г', 'мл') THEN 100 ELSE 1 END
+                CASE WHEN p.unit IN ('г', 'мл') THEN 1000 ELSE 10 END
             ) / GREATEST(m.servings, 1),
             2
         )
@@ -981,11 +981,116 @@ INSERT INTO meal_products (id, meal_id, product_id, quantity) VALUES
 ('30000000-0000-0000-0000-000000000024','20000000-0000-0000-0000-000000000012','10000000-0000-0000-0000-000000000008',180)
 ON CONFLICT (id) DO NOTHING;
 
-WITH numbered_meals AS (
-  SELECT id, row_number() OVER (ORDER BY id) AS image_number
-  FROM meals
-)
-UPDATE meals AS meal
-SET image_url = 'https://picsum.photos/seed/meal-' || numbered_meals.image_number || '/1200/800'
-FROM numbered_meals
-WHERE meal.id = numbered_meals.id;
+UPDATE meals AS m
+SET image_url = v.image_url
+FROM (VALUES
+  ('01eba9d5-13ee-4584-afb5-38a25669cf5d'::uuid, 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=85'),
+  ('062be53a-1329-466c-8415-1a84e3159cae'::uuid, 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85'),
+  ('07ad16cc-f1d5-4b7b-8dbf-9c2612f8505d'::uuid, 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=1200&q=85'),
+  ('07d17a5f-a80a-449b-9f08-fb8c233c1c00'::uuid, 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=85'),
+  ('0e1e276f-1c0c-4d84-9bbb-04d9d93a3a03'::uuid, 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=1200&q=85'),
+  ('12ae56f9-0876-44b4-97b8-43fdaa42fcf7'::uuid, 'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?auto=format&fit=crop&w=1200&q=85'),
+  ('1352556c-8af5-48cc-ab0a-9febb68aa86e'::uuid, 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?auto=format&fit=crop&w=1200&q=85'),
+  ('18493d4c-3bb1-4351-ac0c-802760c47ec3'::uuid, 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1200&q=85'),
+  ('19432d9a-af5d-4840-978c-850fe8f9ae60'::uuid, 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85'),
+  ('20000000-0000-0000-0000-000000000001'::uuid, 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85'),
+  ('20000000-0000-0000-0000-000000000002'::uuid, 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?auto=format&fit=crop&w=1200&q=85'),
+  ('20000000-0000-0000-0000-000000000003'::uuid, 'https://images.unsplash.com/photo-1551248429-40975aa4de74?auto=format&fit=crop&w=1200&q=85'),
+  ('20000000-0000-0000-0000-000000000004'::uuid, 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85'),
+  ('20000000-0000-0000-0000-000000000005'::uuid, 'https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?auto=format&fit=crop&w=1200&q=85'),
+  ('20000000-0000-0000-0000-000000000006'::uuid, 'https://images.unsplash.com/photo-1546069901-d5bfd2cbfb1f?auto=format&fit=crop&w=1200&q=85'),
+  ('20000000-0000-0000-0000-000000000007'::uuid, 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85'),
+  ('20000000-0000-0000-0000-000000000008'::uuid, 'https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?auto=format&fit=crop&w=1200&q=85'),
+  ('20000000-0000-0000-0000-000000000009'::uuid, 'https://images.unsplash.com/photo-1546069901-d5bfd2cbfb1f?auto=format&fit=crop&w=1200&q=85'),
+  ('20000000-0000-0000-0000-000000000010'::uuid, 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85'),
+  ('20000000-0000-0000-0000-000000000011'::uuid, 'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?auto=format&fit=crop&w=1200&q=85'),
+  ('20000000-0000-0000-0000-000000000012'::uuid, 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=1200&q=85'),
+  ('20a99d64-9840-450c-a320-cd359643adf3'::uuid, 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85'),
+  ('24964d88-c3f5-4ef8-8293-92d639aa0227'::uuid, 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1200&q=85'),
+  ('2635113f-8147-4b47-9131-aaf53b0e465b'::uuid, 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=1200&q=85'),
+  ('265c64f1-6ab9-48d2-9d4b-33628fa20eb0'::uuid, 'https://images.unsplash.com/photo-1588137378633-dea1336ce1e2?auto=format&fit=crop&w=1200&q=85'),
+  ('29100f0b-2f22-47a3-ac92-b0eca85aef7a'::uuid, 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85'),
+  ('292eb2ce-45eb-454a-a849-dc77b83a6d6a'::uuid, 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&w=1200&q=85'),
+  ('2a0bec9c-5f8c-4e07-86ec-3c06c701eaa4'::uuid, 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=1200&q=85'),
+  ('2c181a30-95f6-4379-93df-04a42514d285'::uuid, 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=85'),
+  ('2fe393b5-f5f2-4500-a6be-0f139b60bccc'::uuid, 'https://images.unsplash.com/photo-1584776296944-ab6fb57b0bdd?auto=format&fit=crop&w=1200&q=85'),
+  ('33a3bf19-6659-4845-ab4a-231951768fbe'::uuid, 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=1200&q=85'),
+  ('3432d2b4-b0b3-4a4b-96db-1eef0d27bee2'::uuid, 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=1200&q=85'),
+  ('3843e2de-bab9-462d-bb80-42ffa9b6ef2e'::uuid, 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=85'),
+  ('3a4a3a3e-4c00-4a0f-a30c-8a6d70e7f9f5'::uuid, 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=1200&q=85'),
+  ('3bd9da6f-36fa-4f73-a762-be9514d46af9'::uuid, 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1200&q=85'),
+  ('3cfc500e-fb46-44f6-b2e6-74f7f8ea2407'::uuid, 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85'),
+  ('3e057551-c068-4377-a3f1-45b5251a9fba'::uuid, 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85'),
+  ('40d50282-0b40-47f6-a78f-ff6a0ab014ce'::uuid, 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85'),
+  ('42880606-eb74-4ebf-941d-cba12b677620'::uuid, 'https://images.unsplash.com/photo-1574484284002-952d92456975?auto=format&fit=crop&w=1200&q=85'),
+  ('4b410598-92f4-43cb-b0aa-1de934f6e46c'::uuid, 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1200&q=85'),
+  ('4d81f6d4-fea3-4fae-8707-5f079c1ff0cf'::uuid, 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1200&q=85'),
+  ('4ffa54ab-38c2-4196-9cbf-76bcf294425e'::uuid, 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=1200&q=85'),
+  ('51602f14-39d7-43a6-9150-2a362a0bc8ad'::uuid, 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?auto=format&fit=crop&w=1200&q=85'),
+  ('54bee98e-479b-4810-9a6a-7b9cae63b132'::uuid, 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=1200&q=85'),
+  ('57771dda-adda-4e08-aae7-cbff73037de0'::uuid, 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=1200&q=85'),
+  ('57858361-07be-4709-9c7d-ee8a3c58f626'::uuid, 'https://images.unsplash.com/photo-1574484284002-952d92456975?auto=format&fit=crop&w=1200&q=85'),
+  ('65530c45-b88e-49c1-8ee7-690e653f5b9f'::uuid, 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&w=1200&q=85'),
+  ('660515d2-bbfb-4f67-8dbd-6ca5910c328b'::uuid, 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85'),
+  ('6885c5c1-484b-4920-929e-c66bc7495238'::uuid, 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85'),
+  ('6d27d445-79a8-4f69-95e7-0733dfc47bae'::uuid, 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=1200&q=85'),
+  ('72f01681-78b4-41d0-b61f-398fffe80ecb'::uuid, 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=1200&q=85'),
+  ('76a83667-f6bb-42e6-a12b-98d254ab491d'::uuid, 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=1200&q=85'),
+  ('77c04a4c-56f2-41d0-99d1-b7f0d1749fc9'::uuid, 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85'),
+  ('78f16a38-0f67-4abe-9fdf-33d18eb3ac44'::uuid, 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=1200&q=85'),
+  ('79a90042-8f7f-4353-9dcc-1f117c0a9bde'::uuid, 'https://images.unsplash.com/photo-1574484284002-952d92456975?auto=format&fit=crop&w=1200&q=85'),
+  ('7c5cb749-8b6e-41f2-aa7c-a06325e706d4'::uuid, 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=1200&q=85'),
+  ('7c6b204c-bd4a-4c96-80be-f922336e41c9'::uuid, 'https://images.unsplash.com/photo-1576402187878-974f70c890a5?auto=format&fit=crop&w=1200&q=85'),
+  ('7d18a02e-735d-4b59-b770-554f2b754739'::uuid, 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=1200&q=85'),
+  ('82d1d46f-6759-44ec-8a0c-4f385d8be9c7'::uuid, 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=85'),
+  ('830d2f40-1fe2-4dd7-bc3c-6dd9ad948202'::uuid, 'https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&w=1200&q=85'),
+  ('86e7d145-868e-4239-a97c-bf37a8a88011'::uuid, 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85'),
+  ('89d353a9-45b5-4d6e-ad51-7a596947bcd9'::uuid, 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85'),
+  ('8aa58ab8-2b48-43e9-b106-fc5062753204'::uuid, 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85'),
+  ('8b50bc0a-733a-43d4-9b86-954a7ff5c7ea'::uuid, 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=1200&q=85'),
+  ('8b630edb-5d1d-43f6-9a30-4966b2d63941'::uuid, 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=1200&q=85'),
+  ('8b903418-0127-4478-89a2-6cafd0eebf86'::uuid, 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85'),
+  ('902b1c40-7794-4f1d-843c-6e339d7c4b6d'::uuid, 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=85'),
+  ('909cea10-2654-484f-a842-7d8b04e2b8fd'::uuid, 'https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&w=1200&q=85'),
+  ('94141d11-7028-4617-aac6-9220c7794003'::uuid, 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85'),
+  ('9bb184d1-51b5-48e7-b346-e50c942903a1'::uuid, 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1200&q=85'),
+  ('9f49103d-108b-4a3b-8aa4-cbd8c52de21a'::uuid, 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85'),
+  ('a4cde643-4ff2-4093-ba25-3a7fe15f57c8'::uuid, 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?auto=format&fit=crop&w=1200&q=85'),
+  ('ae0783b9-2b30-408c-b0b2-594808d7b9ce'::uuid, 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=1200&q=85'),
+  ('af50ad15-bd98-4a0d-81e0-91f902163d1d'::uuid, 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1200&q=85'),
+  ('b0c56edb-86b0-4c96-ae05-30d1f3a2cdc5'::uuid, 'https://images.unsplash.com/photo-1546069901-d5bfd2cbfb1f?auto=format&fit=crop&w=1200&q=85'),
+  ('b128909b-238e-4191-8141-f46f06b9347f'::uuid, 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=85'),
+  ('b415c95b-a2eb-4619-ba52-1bd271909046'::uuid, 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85'),
+  ('b49decb5-06bb-429a-babd-2d3170790687'::uuid, 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=1200&q=85'),
+  ('b51c992c-6edd-4a7b-b63b-aa40d37d6cd3'::uuid, 'https://images.unsplash.com/photo-1588137378633-dea1336ce1e2?auto=format&fit=crop&w=1200&q=85'),
+  ('b9c77b9e-84d8-4919-8672-5642fd3caff8'::uuid, 'https://images.unsplash.com/photo-1588137378633-dea1336ce1e2?auto=format&fit=crop&w=1200&q=85'),
+  ('bc7f9493-b446-46b4-bf35-d4321530e545'::uuid, 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1200&q=85'),
+  ('c2d7b986-1ae8-4e86-bef1-e9b4bf764256'::uuid, 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85'),
+  ('c4cb60b3-aed6-45de-a136-61c2185608dc'::uuid, 'https://images.unsplash.com/photo-1576402187878-974f70c890a5?auto=format&fit=crop&w=1200&q=85'),
+  ('c62b3479-8d1c-4650-b930-dbeeabef5c8d'::uuid, 'https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=1200&q=85'),
+  ('ce7d930d-07d0-49a7-af0b-80f28715939d'::uuid, 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&w=1200&q=85'),
+  ('cf2a2a54-635d-4d29-945e-6adff6af4d32'::uuid, 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1200&q=85'),
+  ('d3ce4554-33a6-4aec-9e4b-be50289763e8'::uuid, 'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?auto=format&fit=crop&w=1200&q=85'),
+  ('d6422f4d-22f7-41dd-8919-7dc1537e827a'::uuid, 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85'),
+  ('db6f29f3-8171-4371-ab58-f82167307c6b'::uuid, 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=1200&q=85'),
+  ('dc7eb951-17db-43d3-90aa-e7a6ad7bae84'::uuid, 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?auto=format&fit=crop&w=1200&q=85'),
+  ('dd7ec3b9-6580-4948-a410-c638ed2dcead'::uuid, 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=1200&q=85'),
+  ('dfb2fcd3-fb10-49d8-a005-b38f66444c9b'::uuid, 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&w=1200&q=85'),
+  ('e0504f8e-c2bb-4509-8662-d58ee7f07066'::uuid, 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=1200&q=85'),
+  ('e2ca3959-0e49-4a45-93b6-30acb76d1718'::uuid, 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=1200&q=85'),
+  ('e4bed03f-4558-496e-9bc3-adf8121e7ff8'::uuid, 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=1200&q=85'),
+  ('e4ebb2b9-d68b-4bd8-92a8-7dfd70ca05cf'::uuid, 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=85'),
+  ('e8ddc3f8-39b7-4931-afe9-248a2cf086a6'::uuid, 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=1200&q=85'),
+  ('edc3bd77-710a-4fd7-a345-d2aac0a35463'::uuid, 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=1200&q=85'),
+  ('edf3f5b1-f9b7-470c-b7eb-b1e2f69dbd43'::uuid, 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85'),
+  ('f246a641-6e72-42b2-a144-47674766d56a'::uuid, 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=1200&q=85'),
+  ('f43e68fd-08b9-4ce6-928f-75cd74013060'::uuid, 'https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=1200&q=85'),
+  ('f4860cf0-c919-48d7-b343-a06eabdf846b'::uuid, 'https://images.unsplash.com/photo-1588137378633-dea1336ce1e2?auto=format&fit=crop&w=1200&q=85'),
+  ('f629d9d3-f0e1-4abe-948b-ef4339bec94e'::uuid, 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1200&q=85'),
+  ('fa753550-aec2-4d24-b76a-d92e84a125c8'::uuid, 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=1200&q=85'),
+  ('fdeef1c8-55cc-44e4-b02b-7834c31815a8'::uuid, 'https://images.unsplash.com/photo-1588137378633-dea1336ce1e2?auto=format&fit=crop&w=1200&q=85'),
+  ('fe12bb0d-a18b-4ab7-ab01-a9c8e13c45d9'::uuid, 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=1200&q=85'),
+  ('fef3c82e-2e3e-444b-b3ba-67e09e1cd221'::uuid, 'https://images.unsplash.com/photo-1510693206972-df098062cb71?auto=format&fit=crop&w=1200&q=85'),
+  ('ff06d187-e108-494f-97c7-64514c70bde2'::uuid, 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=1200&q=85')
+) AS v(id, image_url)
+WHERE m.id = v.id;

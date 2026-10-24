@@ -14,10 +14,11 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/Meal_planner"
     secret_key: str = "development-secret-change-me"
-    openrouter_api_key: Optional[str] = None
-    openrouter_model: str = "nvidia/nemotron-3.5-lightning:free"
+    gemini_api_key: Optional[str] = None
+    gemini_model: str = "gemini-3.5-flash-lite"
+    gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
+    gemini_timeout_seconds: int = 60
     embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-    openrouter_timeout_seconds: int = 120
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
     debug: bool = False

@@ -88,21 +88,23 @@ export async function register(data) {
 
 export async function getRecipes() {
   const dishes = await request('/dishes')
-  const items = Array.isArray(dishes) ? dishes : dishes.items
+  const items = Array.isArray(dishes) ? dishes : (dishes.items || [])
+  const catMap = { breakfast: 'Завтрак', lunch: 'Обед', dinner: 'Ужин', snack: 'Перекус' }
   return items.map(dish => ({
     id: dish.id,
-    title: dish.name,
-    category: dish.meal_type,
-    tag: dish.recipe?.tag || '',
-    time: dish.recipe?.time || 0,
+    title: dish.name || dish.title,
+    category: dish.category || catMap[dish.meal_type] || dish.meal_type,
+    meal_type: dish.meal_type,
+    tag: dish.recipe?.tag || (dish.tags && dish.tags[0]) || '',
+    time: dish.cooking_time || dish.recipe?.time || dish.time || 20,
     calories: dish.calories,
-    price: dish.price,
-    protein: dish.proteins,
-    fat: dish.fats,
+    price: dish.cost ?? dish.price,
+    protein: dish.protein ?? dish.proteins,
+    fat: dish.fat ?? dish.fats,
     carbs: dish.carbs,
     image: dish.image_url,
-    description: dish.recipe?.description || '',
-    ingredients: dish.recipe?.ingredients || [],
+    description: dish.description || dish.recipe?.description || '',
+    ingredients: dish.ingredients || dish.recipe?.ingredients || [],
     steps: dish.recipe?.steps || [],
     tags: dish.tags || [],
   }))
@@ -114,6 +116,7 @@ export async function getRecipe(id) {
     id: dish.id,
     title: dish.name,
     category: dish.category,
+    meal_type: dish.meal_type,
     tag: dish.recipe?.tag || '',
     time: dish.cooking_time,
     calories: dish.calories,

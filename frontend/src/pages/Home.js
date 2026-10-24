@@ -29,7 +29,7 @@ export function Home() {
     <div className="container home">
       <section className="hero">
         <div className="hero-copy">
-          <span className="eyebrow">🥦 Твой умный помощник в питании</span>
+          <span className="eyebrow">Твой умный помощник в питании</span>
           <h1>
             Персональный рацион
             <br />

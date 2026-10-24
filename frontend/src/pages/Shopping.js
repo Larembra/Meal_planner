@@ -92,10 +92,10 @@ export default function Shopping() {
         <input value={form.quantity} onChange={event => setForm({ ...form, quantity: event.target.value })} placeholder="Количество" />
         <input type="number" min="0" value={form.price} onChange={event => setForm({ ...form, price: event.target.value })} placeholder="Цена, ₽" />
         <select value={form.category} onChange={event => setForm({ ...form, category: event.target.value })}>
-          <option value="🥩 Мясо и рыба">Мясо и рыба</option>
-          <option value="🥬 Бакалея и овощи">Бакалея и овощи</option>
-          <option value="🥛 Молочные продукты">Молочные продукты</option>
-          <option value="🍎 Фрукты">Фрукты</option>
+          <option value="Мясо и рыба">Мясо и рыба</option>
+          <option value="Бакалея и овощи">Бакалея и овощи</option>
+          <option value="Молочные продукты">Молочные продукты</option>
+          <option value="Фрукты">Фрукты</option>
           <option value="other">Другое</option>
         </select>
         <Button onClick={add}>Добавить</Button>
@@ -103,9 +103,16 @@ export default function Shopping() {
       </div>
       {error && <p role="alert">{error}</p>}
       <div className="shopping-grid">
-        {Object.entries(groups).map(([category, categoryItems]) => (
-          <Card key={category}>
-            <h3>{category}</h3>
+        {Object.entries(groups).map(([category, categoryItems]) => {
+          const displayCategory = category === 'other'
+            ? 'Другое / Разное'
+            : category.replace(/^[^\wа-яА-ЯёЁa-zA-Z]+\s*/, '');
+          return (
+            <Card key={category}>
+              <div className="shopping-cat-header">
+                <h3>{displayCategory}</h3>
+                <span className="cat-badge">{categoryItems.length}</span>
+              </div>
             {categoryItems.map(item => (
               <div className={item.is_purchased ? "check done" : "check"} key={item.id}>
                 <input type="checkbox" checked={item.is_purchased} onChange={() => toggle(item)} />
@@ -116,7 +123,8 @@ export default function Shopping() {
               </div>
             ))}
           </Card>
-        ))}
+        );
+      })}
         {!items.length && <Card><p>Список пока пуст. Добавьте товар или ингредиенты из рецепта.</p></Card>}
       </div>
     </div>
